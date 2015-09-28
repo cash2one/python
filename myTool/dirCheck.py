@@ -1,10 +1,18 @@
 # coding:utf-8
 __author__ = '613108'
-import os, platform
+import os
+import platform
 
 
+# noinspection PyBroadException
 def ifDirOrCreate(root='d:', **kwargs):
+    """
     # root为根目录，directory为末级目录（必须为list）；
+    # **kwargs参数解析，支持二层嵌套:dir_1st="" OR dir_1st=[] dir_2nd=[]
+    :param root:
+    :param kwargs:
+    :return:
+    """
     # 初始化
     pathListWindows_temp = []
     pathListWindows = []
@@ -51,11 +59,16 @@ def ifDirOrCreate(root='d:', **kwargs):
             print(item + u' 目录已创建！')
 
 
-def dirGen(dirTarget='d:/spider'):
+def dirGen(windowsDir='d:/spider', linuxDir='/home/613108/'):
+    """
+    目录返回，常用于目录拼接，基于给定的windows目录返回linux目标目录（需配置linux根目录）
+    :param :
+    :return:
+    """
     if platform.system() == 'Windows':
-        path = dirTarget
+        path = windowsDir
     else:
-        path = '/home/613108/' + dirTarget.split('/', 1)[1]
+        path = linuxDir + windowsDir.split('/', 1)[1]
     return path
 
 
