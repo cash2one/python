@@ -13,7 +13,7 @@ from Queue import Queue
 
 from pyquery import PyQuery as pq
 
-from tool_self import dirCheck, myUrlOpen, MyCsv
+from myTool import dirCheck, myUrlOpen, MyCsv
 
 reload(sys)
 sys.setdefaultencoding('utf-8')

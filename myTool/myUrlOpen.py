@@ -3,7 +3,7 @@ __author__ = 'Administrator'
 import urllib2, random, cookielib, time
 from pyquery import PyQuery as pq
 
-# sys.path.append(r'C:\Users\613108\Desktop\Project\tool_self')
+# sys.path.append(r'C:\Users\613108\Desktop\Project\myTool')
 import myProxy
 
 def forRequest():

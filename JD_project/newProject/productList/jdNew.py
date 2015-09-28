@@ -3,7 +3,7 @@ __author__ = '613108'
 import sys, threading
 from Queue import Queue
 from pyquery import PyQuery as pq
-from tool_self import myUrlOpen
+from myTool import myUrlOpen
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -179,7 +179,7 @@ def mainProductInfoGetAndSeUrlGen():
 # 结果持久化
 @myInvoking
 def dataSaved():
-    from tool_self import MyCsv,dirCheck
+    from myTool import MyCsv,dirCheck
 
     result = []
     for i in range(5000):

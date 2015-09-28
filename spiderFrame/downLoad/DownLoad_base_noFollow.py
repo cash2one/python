@@ -5,7 +5,7 @@ from multiprocessing import Queue
 # from spiderFrame.DBSerivce import DBService
 from spiderFrame.UrlSupporter import UrlSupporter
 from spiderFrame.downLoad.DownLoader import DownLoader
-from tool_self.listSplit import listSplit
+from myTool.listSplit import listSplit
 
 # 本模块仅针对不需跟进的页面
 

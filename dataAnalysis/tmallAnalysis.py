@@ -1,7 +1,7 @@
 # coding:utf-8
 __author__ = '613108'
 import csv, sys, pymysql, os
-from tool_self import MyCsv
+from myTool import MyCsv
 
 
 def getDistinctShopTotal(path):

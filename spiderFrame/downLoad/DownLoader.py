@@ -41,7 +41,7 @@ class DownLoader:
             """
             # 返回代理列表，构建代理池
             """
-            from tool_self import myProxy
+            from myTool import myProxy
 
             if proxyOption:
                 if not self.proxyPool:

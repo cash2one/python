@@ -1,7 +1,7 @@
 # coding:utf-8
 __author__ = '613108'
 import sys
-sys.path.append(r'../tool_self')
+sys.path.append(r'../myTool')
 
 
 def myInvoing(func):

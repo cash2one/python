@@ -75,7 +75,7 @@ def getData(path):
 def putDataIntoDB(path):
     title = genTitle()
     data = getData(path=path)
-    from tool_self import dataToDatabase
+    from myTool import dataToDatabase
 
     dataToDatabase.data2database(tableTitle=title, data=data, dbName='elec_platform')
 

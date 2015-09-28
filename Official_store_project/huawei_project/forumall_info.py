@@ -10,7 +10,7 @@ import sys
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
-sys.path.append('C:/Users/613108/Desktop/Project/tool_self')
+sys.path.append('C:/Users/613108/Desktop/Project/myTool')
 import My_Csv
 
 send_headers = {'Referer': 'www.baidu.com/',

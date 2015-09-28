@@ -6,7 +6,7 @@ from selenium import webdriver
 from threading import Thread
 from Queue import Queue
 from pyquery import PyQuery as pq
-from tool_self import MyCsv, myProxy, dirCheck, myUrlOpen
+from myTool import MyCsv, myProxy, dirCheck, myUrlOpen
 
 reload(sys)
 sys.setdefaultencoding('utf-8')

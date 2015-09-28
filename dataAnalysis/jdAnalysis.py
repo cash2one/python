@@ -3,7 +3,7 @@ __author__ = '613108'
 from threading import Thread
 from pyquery import PyQuery as pq
 import sys, csv, time
-from tool_self import myUrlOpen, listSplit, dataToDatabase
+from myTool import myUrlOpen, listSplit, dataToDatabase
 
 reload(sys)
 sys.setdefaultencoding('utf8')
