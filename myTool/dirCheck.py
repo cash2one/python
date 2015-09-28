@@ -7,6 +7,7 @@ import platform
 # noinspection PyBroadException
 def ifDirOrCreate(root='d:', **kwargs):
     """
+    # 判断目录是否存在，若存在则跳过，不存在则创建
     # root为根目录，directory为末级目录（必须为list）；
     # **kwargs参数解析，支持二层嵌套:dir_1st="" OR dir_1st=[] dir_2nd=[]
     :param root:

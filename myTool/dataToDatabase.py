@@ -1,6 +1,8 @@
 # coding:utf-8
 __author__ = '613108'
-
+"""
+弃用
+"""
 
 def connectDatabase(dbName=None):
     if not dbName:
