@@ -1,0 +1,24 @@
+PhantomJS is launching GhostDriver...
+[INFO  - 2015-09-17T08:49:59.712Z] GhostDriver - Main - running on port 51707
+[INFO  - 2015-09-17T08:50:01.159Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.7 Safari/534.34","webSecurityEnabled":true}
+[INFO  - 2015-09-17T08:50:01.160Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.customHeaders:  - {}
+[INFO  - 2015-09-17T08:50:01.160Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"1.9.7","driverName":"ghostdriver","driverVersion":"1.1.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
+[INFO  - 2015-09-17T08:50:01.160Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 14f05b10-5d19-11e5-ae98-1128bf24ec14
+[ERROR - 2015-09-17T08:50:01.321Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:01.321Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
+[ERROR - 2015-09-17T08:50:03.205Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:03.205Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
+[ERROR - 2015-09-17T08:50:04.646Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:04.646Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
+[ERROR - 2015-09-17T08:50:05.528Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:05.529Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
+[ERROR - 2015-09-17T08:50:06.437Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:06.438Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
+[ERROR - 2015-09-17T08:50:07.295Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - msg: TypeError: 'null' is not an object (evaluating 'document.body')
+[ERROR - 2015-09-17T08:50:07.296Z] Session [14f05b10-5d19-11e5-ae98-1128bf24ec14] - page.onError - stack:
+  (anonymous function) (http://www.youdaili.net/static/js/commons.js?v=2013012412:43)
