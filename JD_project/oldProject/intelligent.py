@@ -646,8 +646,8 @@ def main_CommentDetail(fileName=dirCheck.dirGen('D:\spider\jd\InnerPageProductDe
 
 
 def my_dirCheck():
-    dirCheck.ifDirOrCreate(root='d:', directory_1st='spider')
-    dirCheck.ifDirOrCreate(root='d:/spider', directory_1st='jd',
+    dirCheck.isDirExistOrCreate(root='d:', directory_1st='spider')
+    dirCheck.isDirExistOrCreate(root='d:/spider', directory_1st='jd',
                            directory_2nd=['brandList', 'productDetail', 'InnerPageProductDetail', 'commentDetail',
                                           'brand_pagesource'])
 
