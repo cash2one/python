@@ -5,7 +5,7 @@ import platform
 
 
 # noinspection PyBroadException
-def ifDirOrCreate(root='d:', **kwargs):
+def isDirExistOrCreate(root='d:', **kwargs):
     """
     # 判断目录是否存在，若存在则跳过，不存在则创建
     # root为根目录，directory为末级目录（必须为list）；
@@ -74,4 +74,4 @@ def dirGen(windowsDir='d:/spider', linuxDir='/home/613108/'):
 
 
 if __name__ == '__main__':
-    ifDirOrCreate(root='D:/spider', directory_1st='jd', directory_2nd=[['commentDetail', 'dd']])
+    isDirExistOrCreate(root='D:/spider', directory_1st='jd', directory_2nd=[['commentDetail', 'dd']])
