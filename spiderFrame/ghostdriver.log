@@ -1,1 +1,16 @@
-[INFO  - 2015-09-29T16:31:52.022Z] GhostDriver - Main - running on port 60629
+PhantomJS is launching GhostDriver...
+[INFO  - 2015-09-30T05:56:12.238Z] GhostDriver - Main - running on port 59234
+[INFO  - 2015-09-30T05:56:12.679Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.7 Safari/534.34","webSecurityEnabled":true}
+[INFO  - 2015-09-30T05:56:12.679Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.customHeaders:  - {}
+[INFO  - 2015-09-30T05:56:12.679Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"1.9.7","driverName":"ghostdriver","driverVersion":"1.1.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
+[INFO  - 2015-09-30T05:56:12.680Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: f4735710-6737-11e5-af2d-898b1d41142d
+[ERROR - 2015-09-30T05:56:57.336Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - msg: ReferenceError: Can't find variable: YAHOO
+[ERROR - 2015-09-30T05:56:57.336Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - stack:
+  (anonymous function) (http://cdn.blackhat-static.com/blackhat-seo/clientscript/vbulletin-core.js?v=422:11)
+[ERROR - 2015-09-30T05:56:57.397Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - msg: ReferenceError: Can't find variable: YAHOO
+[ERROR - 2015-09-30T05:56:57.398Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - stack:
+  (anonymous function) (http://www.blackhatworld.com/blackhat-seo/proxy-lists/621409-scrapebox-high-anonymous-high-trans-high-elite-http-proxies.html:290)
+[ERROR - 2015-09-30T05:57:17.232Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - msg: TypeError: 'undefined' is not an object (evaluating 'vBulletin.init')
+[ERROR - 2015-09-30T05:57:17.232Z] Session [f4735710-6737-11e5-af2d-898b1d41142d] - page.onError - stack:
+  vBulletin_init (http://cdn.blackhat-static.com/blackhat-seo/clientscript/vbulletin-core.js?v=422:11)
+  (anonymous function) (http://www.blackhatworld.com/blackhat-seo/proxy-lists/621409-scrapebox-high-anonymous-high-trans-high-elite-http-proxies.html:66336)

@@ -131,10 +131,12 @@ class DownLoader:
         # 返回源码,自动选择highOrderUrllib2方法或selenium方法；保证能返回页面源码信息
         :return:
         """
-        src = self.highOrderUrllib2()
-        if not src:
-            src = self.selenium()
-        return (self.url, src)
+        try:
+            src = self.highOrderUrllib2()
+            if not src:
+                src = self.selenium()
+            return (self.url, src)
+        except:return None
 
     def getHttpCode(self):
         """

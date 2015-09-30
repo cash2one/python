@@ -76,11 +76,14 @@ class DownLoadBase:
         """
         # 源码下载主程序，n为下载线程数
         """
+        import time
         urlSupList = self.genUrlSup(n)
         downLoadList = []
         for urlSup in urlSupList:
             downLoadList.append(self.DownLoad(urlSup))
         for item in downLoadList:
+            time.sleep(0.1)
+            item.setDaemon(True)# 主线程结束则子线程停止执行
             item.start()
-            # for item in downLoadList:
-            #     item.join()
+        # for item in downLoadList:
+        #     item.join()
