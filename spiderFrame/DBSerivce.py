@@ -197,8 +197,7 @@ class DBService(DBBase):
             if res[0] == 'id':
                 res = res[1:]
             else:
-                pass
-
+                print(u'-->请确认；表头无ID列')
             return res
 
     def data2DB(self, tableTitle=None, data=None):
