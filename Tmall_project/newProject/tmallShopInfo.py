@@ -66,19 +66,18 @@ class GetKeyWord():
         dri.get('http://www.tmall.com')
         dri.maximize_window()
         clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
+        text=[]
         for item in clickElement:
             ActionChains(dri).move_to_element(item).perform()
             time.sleep(0.5)
-        src = dri.page_source
+            fra=dri.find_elements_by_css_selector('.label-list a')
+            for item in fra:
+                t=item.text
+                if t:
+                    text.append(item.text)
+                    print(t)
         dri.quit()
-        src = unicode(src.encode('gbk', 'ignore'), encoding='gbk')
-        text = pq(src).find('.label-list a').my_text()
-        F = lambda x: x.replace('/a>', '')
-        text = [F(item) for item in text]
-        print(text)
-        print(len(text))
         text = set(text)
-        print(len(text))
         for item in text:
             queue_GetShopList_keyWord.put(item)
             print(item.encode('gbk', 'ignore'))
