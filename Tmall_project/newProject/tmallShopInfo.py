@@ -24,11 +24,13 @@ class GetKeyWord():
     def __init__(self):
         pass
 
-    def run(self):
+    def run_unused(self):
         src = myUrlOpen.requestByProxy('http://www.tmall.com')
+        # print(src)
         d = pq(src)
         frame = d.find('.j_LazyloadCon')
         pathData = [pq(item).attr('data-path') for item in frame]
+        print(pathData)
         pathData = [item.replace('floor', 'category') for item in pathData if item and 'ad' not in item]
         keyWordList = []
         for item in pathData:
@@ -50,6 +52,36 @@ class GetKeyWord():
         for item in d.items():
             queue_GetShopList_keyWord.put(item[0])
             print(item[0])
+
+    def run(self):
+        """
+        edit 20151013
+        :return:
+        """
+        from selenium.webdriver import Chrome
+        from selenium.webdriver.common.action_chains import ActionChains
+        import time
+
+        dri = Chrome()
+        dri.get('http://www.tmall.com')
+        dri.maximize_window()
+        clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
+        for item in clickElement:
+            ActionChains(dri).move_to_element(item).perform()
+            time.sleep(0.5)
+        src = dri.page_source
+        dri.quit()
+        src = unicode(src.encode('gbk', 'ignore'), encoding='gbk')
+        text = pq(src).find('.label-list a').my_text()
+        F = lambda x: x.replace('/a>', '')
+        text = [F(item) for item in text]
+        print(text)
+        print(len(text))
+        text = set(text)
+        print(len(text))
+        for item in text:
+            queue_GetShopList_keyWord.put(item)
+            print(item.encode('gbk', 'ignore'))
 
 
 def main_GetKeyWord():

@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 sys.path.append(r'C:\Users\613108\Desktop\Project\tool_self')
 import my_proxy, dirCheck, My_Csv
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 socket.setdefaulttimeout(3)
