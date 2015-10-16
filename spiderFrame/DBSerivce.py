@@ -63,7 +63,6 @@ class DBService(DBBase):
         DBBase.__init__(self, dbName, **kwargs)
         self.tableName = tableName
 
-
     def isTableExist(self):
         """
         # 用于凑数表格是否存在，如果表存在返回1，若不存在返回0
@@ -128,7 +127,7 @@ class DBService(DBBase):
 
         return data
 
-    def createTable(self, tableTitle=None,x="N"):
+    def createTable(self, tableTitle=None, x="N"):
         """
         # 用于创建表格，tableTitle参数为LIST形式提供；
         # 创建之前会先行检查表格是否已经存在，若不存在直接创建；
@@ -143,7 +142,7 @@ class DBService(DBBase):
         else:
             isTableExist = self.isTableExist()
             if isTableExist:
-                if x.upper()=='N':
+                if x.upper() == 'N':
                     return None
                 else:
                     x = raw_input(u'|->表已存在，是否需要重新创建（将删除前面已经存在的表格）？是，Y；否，N ……\n')
@@ -200,7 +199,7 @@ class DBService(DBBase):
                 print(u'-->请确认；表头无ID列')
             return res
 
-    def data2DB(self, tableTitle=None, data=None):
+    def data2DB(self, data=None, tableTitle=None):
         """
         # 用于数据存入MySql数据库;参数说明如下：
         # tableTitle存储字段，若不提供则默认为全字段插入

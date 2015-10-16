@@ -4,6 +4,7 @@ import sys, threading
 from Queue import Queue
 from pyquery import PyQuery as pq
 from myTool import myUrlOpen
+from spiderFrame.DBSerivce import DBService
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -26,7 +27,7 @@ def getCategoryAndStartUrl():
     queue_for_url_targetBase = Queue(0)
     src = myUrlOpen.requestByProxy('http://dc.3.cn/category/get?callback=getCategoryCallback')
     srcTemp = src.split('(', 1)[1][:-1]
-    srcTemp = srcTemp.decode('utf-8', 'ignore')
+    srcTemp = srcTemp.decode('gbk', 'ignore')
     srcJson = json.loads(srcTemp)['data']
     category = []
     for Fi in srcJson:
@@ -44,6 +45,17 @@ def getCategoryAndStartUrl():
                                     targetFoTitle.split('|')[1], targetFoTitle.split('|')[0]]
                     category.append(categoryTemp)
                     queue_for_url_targetBase.put((targetFoTitle.split('|')[1], targetFoTitle.split('|')[0]))
+    db = DBService(dbName='jddata', tableName='jdkeyword')
+    db.createTable(tableTitle=['category_fi_name', 'category_fi', 'category_se_name', 'category_se', 'category_ti_name',
+                               'category_ti'])
+    db.data2DB(data=category)
+
+    # for item in category:
+    #     print(item)
+    #     try:
+    #         db.data2DB(data=item)
+    #     except:continue
+    # print('=' * 50)
     return category
 
 
@@ -179,7 +191,7 @@ def mainProductInfoGetAndSeUrlGen():
 # 结果持久化
 @myInvoking
 def dataSaved():
-    from myTool import MyCsv,dirCheck
+    from myTool import MyCsv, dirCheck
 
     result = []
     for i in range(5000):
@@ -188,7 +200,7 @@ def dataSaved():
     title = ['', '', '', '', 'url']
     # 数据写入csv文件
     writer = MyCsv.Write_Csv(path=dirCheck.dirGen('d:/spider/jd/productDetail'), name='jdProductInfo',
-                              title=title, result=result)
+                             title=title, result=result)
     writer.add_title_data()
 
 
@@ -198,8 +210,11 @@ def filterSpiderUrl():
     from dataAnalysis import jdAnalysis
 
     global pageLinkHadCrawled
-    pageLinkHadCrawled = jdAnalysis.pageLinkHadCrawled()
-    return pageLinkHadCrawled
+    try:
+        pageLinkHadCrawled = jdAnalysis.pageLinkHadCrawled()
+        return pageLinkHadCrawled
+    except:
+        return []
 
 
 if __name__ == '__main__':
