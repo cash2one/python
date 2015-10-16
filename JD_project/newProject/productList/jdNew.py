@@ -49,7 +49,6 @@ def getCategoryAndStartUrl():
     db.createTable(tableTitle=['category_fi_name', 'category_fi', 'category_se_name', 'category_se', 'category_ti_name',
                                'category_ti'])
     db.data2DB(data=category)
-
     # for item in category:
     #     print(item)
     #     try:
