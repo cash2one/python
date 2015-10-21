@@ -58,11 +58,12 @@ class GetKeyWord():
         edit 20151013
         :return:
         """
-        from selenium.webdriver import Chrome
+        from selenium import webdriver
         from selenium.webdriver.common.action_chains import ActionChains
         import time
 
-        dri = Chrome()
+        # dri = Chrome()
+        dri=webdriver.PhantomJS()
         dri.get('http://www.tmall.com')
         dri.maximize_window()
         clickElement = dri.find_elements_by_css_selector('.j_MenuNav')

@@ -24,6 +24,6 @@ def match():
 
 def matchIndustry():
     df=pd.read_csv('d:/spider/ok.csv',)
-    print(df[])
+    print(df)
 
 matchIndustry()
