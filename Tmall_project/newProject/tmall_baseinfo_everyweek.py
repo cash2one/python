@@ -59,8 +59,8 @@ def getData(path):
     #     print(i,titleNeedToHandle[i])
     indexToHandleData = [0, 1, 14, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 20, 22, 23, 25, 26]
     # 配置项：需提供的额外数值，周数及爬取日期
-    week = 42
-    spiderTime = '2015-10-20'
+    week = 43
+    spiderTime = '2015-10-26'
     dataOk = []
     for item in data:
         temp = []
@@ -81,4 +81,4 @@ def putDataIntoDB(path):
 
 
 if __name__ == '__main__':
-    putDataIntoDB(path=r'D:\spider\tmall\20151020')
+    putDataIntoDB(path=r'D:\spider\tmall\20151026')

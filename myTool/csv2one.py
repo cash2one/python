@@ -61,7 +61,7 @@ def one_to_N(fileName):
 if __name__ == '__main__':
     # t = time.time()
     # # all_to_one(r'C:\Users\613108\Desktop\jdcomment\src1')
-    all_to_one_Distinct(r'D:\spider\taobao\baseInfo')
+    all_to_one_Distinct(r'D:\spider\tmall\20151026')
     # print('*' * 15 + u'文件合并完毕，请检查数据' + '*' * 15)
     # t = time.time() - t
     # print('*' * 16 + u'总计耗时：%f 秒' + '*' * 16) % t

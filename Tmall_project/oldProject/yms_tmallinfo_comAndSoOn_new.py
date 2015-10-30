@@ -4,10 +4,11 @@ import pymysql
 from selenium import webdriver
 import time
 import string
+import random
 
 # 定义数据库链接
 def mysql_conn():
-    conn = pymysql.connect(host='10.118.187.5', user='root', passwd='root', charset='utf8', db='elec_platform')
+    conn = pymysql.connect(host='10.118.187.12', user='admin', passwd='admin', charset='utf8', db='elec_platform')
     cursor = conn.cursor()
     return conn, cursor
 
@@ -34,7 +35,7 @@ def update_shop_company():
 # 取购买评价地址
 def get_link():
     conn, cursor = mysql_conn()
-    sql_select_com = 'select name,judgepage_href from yms_tmall_shopinfo_com_withOutJudge where spider_time is null limit 0,1'
+    sql_select_com = 'select name,judgepage_href from yms_tmall_shopinfo_com_withoutjudge where company_name is null limit 0,1'
     cursor.execute(sql_select_com)
     shop_NameLink = cursor.fetchone()
     conn.close()
@@ -129,7 +130,7 @@ def get_data(send_driver):
 # 公司信息表更新
 def update_com_table(update_data):
     conn, cursor = mysql_conn()
-    sql_update = 'update yms_tmall_shopinfo_com_withOutJudge set ' \
+    sql_update = 'update yms_tmall_shopinfo_com_withoutjudge set ' \
                  'company_name=%s,major_business=%s,seller_bond=%s,' \
                  'refund_time=%s,refund_time_avg=%s,refund_self=%s,' \
                  'refund_self_avg=%s,refund_dispute=%s,refund_dispute_avg=%s,' \
@@ -141,7 +142,8 @@ def update_com_table(update_data):
 
 # 主调用
 if __name__ == '__main__':
-    while True:
+    i=40000
+    while i>0:
         # time.sleep(600)
         # update_shop_company()
         link_temp = get_link()
@@ -150,11 +152,19 @@ if __name__ == '__main__':
             driver = judge_page(judge_link=url)
             driver.maximize_window()
             while url:
+                i-=1
                 update_data, driver = get_data(send_driver=driver)
                 update_data.append(shop_name)
                 update_com_table(update_data)
                 shop_name, url = get_link()
                 driver = judge_page(send_driver=driver, judge_link=url)
+                if i%91==0:
+                    print(i)
+                    print(u'sleeping…………')
+                    driver.quit()
+                    time.sleep(abs(random.gauss(20,5)))
+                    driver = judge_page(judge_link=url)
+                    driver.maximize_window()
                 print(driver.title.split('-')[0] + u'页面内容已添加！')
         else:
             continue
