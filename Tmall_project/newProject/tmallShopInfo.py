@@ -62,18 +62,21 @@ class GetKeyWord():
         from selenium.webdriver.common.action_chains import ActionChains
         import time
 
-        # dri = Chrome()
-        dri=webdriver.PhantomJS()
+        dri = webdriver.Chrome()
+        # dri=webdriver.PhantomJS()
         dri.get('http://www.tmall.com')
         dri.maximize_window()
+        temp = dri.find_element_by_css_selector('.j_navNav li:nth-child(1)')
+        ActionChains(dri).move_to_element(temp).click()
+        time.sleep(1)
         clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
-        text=[]
+        text = []
         for item in clickElement:
             ActionChains(dri).move_to_element(item).perform()
             time.sleep(0.5)
-            fra=dri.find_elements_by_css_selector('.label-list a')
+            fra = dri.find_elements_by_css_selector('.label-list a')
             for item in fra:
-                t=item.text
+                t = item.text
                 if t:
                     text.append(item.text)
                     print(t)
@@ -82,6 +85,9 @@ class GetKeyWord():
         for item in text:
             queue_GetShopList_keyWord.put(item)
             print(item.encode('gbk', 'ignore'))
+        text = list(text)
+        with open('d:/spider/tmall/keyWord.txt', 'wb') as f:
+            f.write('++'.join(text))
 
 
 def main_GetKeyWord():

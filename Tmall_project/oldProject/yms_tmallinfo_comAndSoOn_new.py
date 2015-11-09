@@ -50,8 +50,8 @@ def judge_page(send_driver='', judge_link='http://rate.taobao.com/user-rate-UvFc
         driver = send_driver
     else:
         # driver=webdriver.Firefox()
-        driver = webdriver.Chrome()
-        # driver=webdriver.PhantomJS()
+        # driver = webdriver.Chrome()
+        driver = webdriver.PhantomJS()
     try:
         driver.get(link)
     except:
@@ -142,8 +142,9 @@ def update_com_table(update_data):
 
 # 主调用
 if __name__ == '__main__':
-    i=40000
-    while i>0:
+    i = 2000
+    while i > 0:
+        i -= 1
         # time.sleep(600)
         # update_shop_company()
         link_temp = get_link()
@@ -152,17 +153,17 @@ if __name__ == '__main__':
             driver = judge_page(judge_link=url)
             driver.maximize_window()
             while url:
-                i-=1
+                i -= 1
                 update_data, driver = get_data(send_driver=driver)
                 update_data.append(shop_name)
                 update_com_table(update_data)
                 shop_name, url = get_link()
                 driver = judge_page(send_driver=driver, judge_link=url)
-                if i%91==0:
+                if i % 91 == 0:
                     print(i)
                     print(u'sleeping…………')
                     driver.quit()
-                    time.sleep(abs(random.gauss(20,5)))
+                    time.sleep(abs(random.gauss(20, 5)))
                     driver = judge_page(judge_link=url)
                     driver.maximize_window()
                 print(driver.title.split('-')[0] + u'页面内容已添加！')
