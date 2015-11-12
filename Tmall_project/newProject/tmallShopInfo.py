@@ -53,7 +53,7 @@ class GetKeyWord():
             queue_GetShopList_keyWord.put(item[0])
             print(item[0])
 
-    def run(self):
+    def run_getKeyWord(self):
         """
         edit 20151013
         :return:
@@ -62,12 +62,11 @@ class GetKeyWord():
         from selenium.webdriver.common.action_chains import ActionChains
         import time
 
-        dri = webdriver.Chrome()
-        # dri=webdriver.PhantomJS()
+        # dri = webdriver.Chrome()
+        dri = webdriver.PhantomJS()
         dri.get('http://www.tmall.com')
         dri.maximize_window()
-        temp = dri.find_element_by_css_selector('.j_navNav li:nth-child(1)')
-        ActionChains(dri).move_to_element(temp).click()
+        temp = dri.find_element_by_css_selector('li.category-tab-nav-item').click()
         time.sleep(1)
         clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
         text = []
@@ -81,19 +80,37 @@ class GetKeyWord():
                     text.append(item.text)
                     print(t)
         dri.quit()
-        text = set(text)
+
+        text = map(lambda x: x.replace(u'双11', ''), text)
         for item in text:
-            queue_GetShopList_keyWord.put(item)
-            print(item.encode('gbk', 'ignore'))
+            print(item)
+        text = set(text)
+        # for item in text:
+        #     queue_GetShopList_keyWord.put(item)
+        #     print(item.encode('gbk', 'ignore'))
         text = list(text)
-        with open('d:/spider/tmall/keyWord.txt', 'wb') as f:
-            f.write('++'.join(text))
+        with open('d:/spider/tmall/keyWord.txt', 'a') as f:
+            f.write('++' + '++'.join(text))
+        return text
+
+    def run(self, usingLocalFile=1):
+        if usingLocalFile:
+            with open('d:/spider/tmall/keyword.txt', 'r')as f:
+                temp = f.read()
+            keyword = temp.split('++')
+            keyword = map(lambda x: x.replace('双11', ""), keyword)
+            keyword = list(set(keyword))
+        else:
+            keyword = self.run_getKeyWord()
+        for item in keyword:
+            if item:
+                queue_GetShopList_keyWord.put(item)
 
 
 def main_GetKeyWord():
     global queue_GetShopList_keyWord
     queue_GetShopList_keyWord = Queue(0)
-    GetKeyWord().run()
+    GetKeyWord().run(usingLocalFile=1)
 
 
 def jsonParse(str):
