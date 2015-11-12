@@ -175,6 +175,7 @@ class DBService(DBBase):
         createTableSql = \
             'create table %s (id int NOT NULL AUTO_INCREMENT,' % self.tableName \
             + titleForSql + ',PRIMARY KEY (`id`))'
+        print(createTableSql)
         cursor.execute(createTableSql)
         conn.close()
 

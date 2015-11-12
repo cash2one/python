@@ -1,6 +1,9 @@
 # coding:utf8
 __author__ = 'YangMingSong'
 import csv, os, time
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 """
 功能设计

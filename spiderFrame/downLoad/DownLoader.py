@@ -13,6 +13,7 @@ class DownLoader:
         self.proxyPool = None
         self.pageSource = None
 
+
     def urllib2(self):
         """
         # 使用基本类库，适用于简单网页（网页不需js等渲染即包含待抓取信息）
