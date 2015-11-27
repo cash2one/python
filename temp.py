@@ -39,3 +39,31 @@ text=db.getData(var='shopName')
 text=map(lambda x:x[0],text)
 for item in text:
     print(item)
+
+
+# 三年规划
+import pymysql
+connect=pymysql.connect(host='10.118.187.12',user='admin',password='admin',charset='utf8',database='jddata')
+import pandas as pd
+sql_1="SELECT t.companyName,t.productHref FROM `thirdPartShopInfo` t HAVING t.companyName!='-'"
+sql_2="SELECT t.companyName,t.productHref FROM `thirdPartShopInfo` t HAVING t.companyName='-'"
+sql_3="SELECT t.productHref,t.commentCount FROM `jdproductbaseinfo2database` t"
+df1=pd.read_sql(sql=sql_1,con=connect)
+df2=pd.read_sql(sql=sql_2,con=connect)
+df3=pd.read_sql(sql=sql_3,con=connect)
+df4=df3.drop_duplicates(cols='productHref',take_last=True)
+# df4['platform']=df4.pageUrl.apply(lambda x:x.split('cat=')[-1].replace('%2C',','))
+df5=pd.merge(df1,df4,how="left",left_on='productHref',right_on='productHref')
+df6=pd.merge(df2,df4,how="left",left_on='productHref',right_on='productHref')
+df5['count']=df5['commentCount'].apply(lambda x:int(x) if x.isdigit() else 0)
+df5.groupby("companyName").sum()
+# df5.drop('count',axis=1)
+df6['count']=df6['commentCount'].apply(lambda x:int(x) if x.isdigit() else 0)
+df6.groupby("companyName").sum()
+sql_7="SELECT t.category_ti,t.category_ti_name,t.category_se_name,t.category_fi_name FROM `jdkeyword` t"
+df7=pd.read_sql(sql=sql_7,con=connect)
+df7['platform']=df7['category_ti'].apply(lambda x:x.replace('-',','))
+df8=pd.merge(df4,df7,how='left',left_on='platform',right_on='platform')
+df8['count']=df8['commentCount'].apply(lambda x:int(x) if x.isdigit() else 0)
+df8.groupby(['category_fi_name','category_se_name','category_ti_name']).sum()
+df8['ifThirdPart']=df8['productHref'].apply(lambda x:'YES' if len(x.split('/')[-1].split('.')[0])>=9 else "NO")
