@@ -66,8 +66,8 @@ class GetKeyWord():
         dri = webdriver.PhantomJS()
         dri.get('http://www.tmall.com')
         dri.maximize_window()
-        temp = dri.find_element_by_css_selector('li.category-tab-nav-item').click()
-        time.sleep(1)
+        # temp = dri.find_element_by_css_selector('li.category-tab-nav-item').click()
+        # time.sleep(1)
         clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
         text = []
         for item in clickElement:
@@ -94,14 +94,18 @@ class GetKeyWord():
         return text
 
     def run(self, usingLocalFile=1):
-        if usingLocalFile:
+        def openLocalFile():
             with open('d:/spider/tmall/keyword.txt', 'r')as f:
                 temp = f.read()
             keyword = temp.split('++')
             keyword = map(lambda x: x.replace('双11', ""), keyword)
-            keyword = list(set(keyword))
-        else:
-            keyword = self.run_getKeyWord()
+            return list(set(keyword))
+
+        if not usingLocalFile:
+            self.run_getKeyWord()
+
+        keyword=openLocalFile()
+
         for item in keyword:
             if item:
                 queue_GetShopList_keyWord.put(item)
