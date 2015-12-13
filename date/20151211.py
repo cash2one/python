@@ -55,6 +55,7 @@ x = np.arange(-6, 6, 0.1)
 y = 1 / (1 + np.e ** (-x))
 plt.plot(x, y, 'b-')
 
+
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model.logistic import LogisticRegression
@@ -87,3 +88,8 @@ plt.colorbar(4)
 plt.ylabel(u'实际类型', fontproperties=font)
 plt.xlabel(u'预测类型', fontproperties=font)
 
+import pandas as pd
+df = pd.read_csv('D:\ML\SMSSpamCollection.txt', delimiter='\t', header=None)
+print(df.head())
+print '含spam短信数量：%s'%df[df[0] == 'spam'][0].count()
+print '含ham短信数量：%s'%df[df[0] == 'ham'][0].count()
