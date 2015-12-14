@@ -84,7 +84,7 @@ y_pred = [0, 1, 0, 0, 0, 0, 0, 1, 1, 1]
 confusion_matrix = confusion_matrix(y_test, y_pred)
 print(confusion_matrix)
 plt.title(u'混淆矩阵', fontproperties=font)
-plt.colorbar(4)
+plt.colorbar()
 plt.ylabel(u'实际类型', fontproperties=font)
 plt.xlabel(u'预测类型', fontproperties=font)
 
