@@ -50,7 +50,6 @@ y_train = all_instance_targets[:train_len]
 y_test = all_instance_targets[train_len:]
 
 n_clusters = 300
-"""n_clusters need to be 150"""
 
 print 'Clustering', len(X_train_surf_features), 'features'
 estimator = MiniBatchKMeans(n_clusters=n_clusters)
