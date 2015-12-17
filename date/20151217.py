@@ -60,3 +60,4 @@ X_train_reduced=pca.fit_transform(X_train)
 X_test_reduced=pca.transform(X_test)
 tt=pca.fit_transform(X_test)
 TT=X_test_reduced
+
