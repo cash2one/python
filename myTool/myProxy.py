@@ -13,6 +13,7 @@ import csv
 import os
 import MyCsv
 import socket
+
 socket.setdefaulttimeout(180)
 
 ip_get = []
@@ -240,7 +241,7 @@ def proxyExistsAll(path=r'D:\spider\proxy'):
                     ip.append(line)
                 i += 1
     else:
-        proxyList=[]
+        proxyList = []
         for item in os.listdir(path):
             with open(path + '/' + item, 'r') as f:
                 reader = csv.reader(f)
@@ -249,7 +250,7 @@ def proxyExistsAll(path=r'D:\spider\proxy'):
                     if i == 1:
                         pass
                     else:
-                        proxyList.append((row[0],row[1]))
+                        proxyList.append((row[0], row[1]))
                     i += 1
         resultTemp = set(proxyList)
         for item in resultTemp:

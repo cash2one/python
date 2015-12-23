@@ -61,3 +61,4 @@ X_test_reduced=pca.transform(X_test)
 tt=pca.fit_transform(X_test)
 TT=X_test_reduced
 
+import pyspider.webui

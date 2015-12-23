@@ -68,11 +68,12 @@ class GetKeyWord():
         dri.maximize_window()
         # temp = dri.find_element_by_css_selector('li.category-tab-nav-item').click()
         # time.sleep(1)
-        clickElement = dri.find_elements_by_css_selector('.j_MenuNav')
+        clickElement = dri.find_elements_by_css_selector('.j_MenuNav.nav-item')[:2]
         text = []
+        time.sleep(10)
         for item in clickElement:
             ActionChains(dri).move_to_element(item).perform()
-            time.sleep(0.5)
+            time.sleep(2)
             fra = dri.find_elements_by_css_selector('.label-list a')
             for item in fra:
                 t = item.text
