@@ -4,7 +4,7 @@ import sys, threading
 from Queue import Queue
 from pyquery import PyQuery as pq
 from myTool import myUrlOpen
-from spiderFrame.DBSerivce import DBService
+from ms_spider_fw.DBSerivce import DBService
 
 reload(sys)
 sys.setdefaultencoding('utf8')

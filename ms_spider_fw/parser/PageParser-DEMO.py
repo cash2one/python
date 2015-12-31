@@ -1,7 +1,7 @@
 #coding:utf8
 __author__ = '613108'
-from spiderFrame.parser import PageParser
-from spiderFrame.downLoad import DownLoader
+from ms_spider_fw.parser import PageParser
+from ms_spider_fw.downLoad import DownLoader
 
 DL= DownLoader.DownLoader('http://www.baidu.com')
 src=DL.selenium()

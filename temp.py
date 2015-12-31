@@ -33,7 +33,7 @@
 # for item in keyword:
 #     print(item.decode('utf8', 'ignore'))
 
-from spiderFrame.DBSerivce import DBService
+from ms_spider_fw.DBSerivce import DBService
 
 db = DBService(dbName='tmalldata', tableName='need_view')
 text = db.getData(var='shopName')
@@ -83,3 +83,15 @@ df3=pd.merge(df1,df2,how='left',left_on='name',right_on='name')
 df4=df3.drop('spider_time',axis=1)
 temp=[u'手机',u'运动/户外']
 df5=df4[df4['major_business'].isin(temp)]
+
+# JD_Guangdongprovice
+# create on:2015-12-25
+import pymysql
+connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8',database='jddata')
+import pandas as pd
+sql_1='SELECT * FROM `thirdPartShopInfo`;'
+df1=pd.read_sql(sql=sql_1,con=connect)
+df1=df1.drop(['productHref','id'],axis=1)
+df1=df1.sort(columns=['shopName','gradeHref'])
+df2=df1.drop_duplicates(['shopName'])
+df2.to_csv(path_or_buf='/home/appdeploy/jd_all_shop.csv',index=False)

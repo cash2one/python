@@ -4,9 +4,9 @@ __author__ = '613108'
 import time
 
 from pyquery import PyQuery as pq
-from spiderFrame.downLoad import DownLoad_noFollow as DBN
-from spiderFrame.DBSerivce import DBService
-from spiderFrame.parser.PageParser import PageParser
+from ms_spider_fw.downLoad import DownLoad_noFollow as DBN
+from ms_spider_fw.DBSerivce import DBService
+from ms_spider_fw.parser.PageParser import PageParser
 
 
 # 源码下载：

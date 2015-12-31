@@ -1,5 +1,5 @@
 __author__ = '613108'
-from spiderFrame.CSVService import CSV
+from ms_spider_fw.CSVService import CSV
 
 C=CSV()
 # C.csv2one(filePath=r'D:\spider\tmall\20150921',fileNameType=0)

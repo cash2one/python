@@ -1,7 +1,7 @@
 # coding:utf8
 __author__ = '613108'
 import sys
-from spiderFrame.downLoad.DownLoader import DownLoader
+from ms_spider_fw.downLoad.DownLoader import DownLoader
 from pyquery import PyQuery as pq
 
 reload(sys)

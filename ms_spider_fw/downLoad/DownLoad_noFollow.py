@@ -2,9 +2,9 @@
 __author__ = '613108'
 from threading import Thread
 from multiprocessing import Queue
-# from spiderFrame.DBSerivce import DBService
-from spiderFrame.UrlSupporter import UrlSupporter
-from spiderFrame.downLoad.DownLoader import DownLoader
+# from ms_spider_fw.DBSerivce import DBService
+from ms_spider_fw.UrlSupporter import UrlSupporter
+from ms_spider_fw.downLoad.DownLoader import DownLoader
 from myTool.listSplit import listSplit
 
 # 本模块仅针对不需跟进的页面

@@ -22,7 +22,7 @@ socket.setdefaulttimeout(60)
 def main_GetKeyWord():
     global queue_GetShopList_keyWord
     queue_GetShopList_keyWord = Queue(0)
-    from spiderFrame.DBSerivce import DBService
+    from ms_spider_fw.DBSerivce import DBService
 
     db = DBService('taobaodata', 'keyword')
     keyword = db.getData(var='categoryTi')

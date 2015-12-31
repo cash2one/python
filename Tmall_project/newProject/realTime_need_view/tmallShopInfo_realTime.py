@@ -25,7 +25,7 @@ class GetKeyWord():
         pass
 
     def run(self):
-        from spiderFrame.DBSerivce import DBService
+        from ms_spider_fw.DBSerivce import DBService
 
         db = DBService(dbName='tmalldata', tableName='need_view')
         text = db.getData(var='shopName')
@@ -145,7 +145,7 @@ def main_GetShopList(threadCount=50):
         for itemIndex in indexToHandleData:
             temp.append(item[itemIndex])
         dataOk.append(temp)
-    from spiderFrame.DBSerivce import DBService
+    from ms_spider_fw.DBSerivce import DBService
 
     db = DBService(dbName='tmalldata', tableName='tmall_baseinfo_realtime')
     db.data2DB(data=dataOk)

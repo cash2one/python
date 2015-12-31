@@ -1,6 +1,6 @@
 __author__ = '613108'
 
-from spiderFrame.DBSerivce import DBService
+from ms_spider_fw.DBSerivce import DBService
 
 dbs = DBService(dbName='jddata', tableName='thirdPartShopInfo')
 companyCount = dbs.getData(var='companyName', distinct=True)

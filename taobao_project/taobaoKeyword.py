@@ -20,7 +20,7 @@ def getKeyword():
     return keyword
 
 def push2DB():
-    from spiderFrame.DBSerivce import DBService
+    from ms_spider_fw.DBSerivce import DBService
     data=getKeyword()
     db=DBService('taobaodata','keyword')
     tableTitle=['categoryFi', 'categorySe', 'categoryTi']

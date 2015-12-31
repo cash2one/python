@@ -4,7 +4,7 @@ __author__ = '613108'
 
 def savePicture():
     from screenShot import saveScreenShot
-    from spiderFrame.DBSerivce import DBService
+    from ms_spider_fw.DBSerivce import DBService
     import time
     import random
 
