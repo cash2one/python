@@ -30,8 +30,8 @@ def gen_url(user_id='UvCHyvFvGMCkSvNTT', page_count=4):
             ('page', c)
         ]
         t.append(urllib.urlencode(par_s))
-    for temp in map(lambda x: url_base + x, t):
-        print(temp)
+    # for temp in map(lambda x: url_base + x, t):
+    #     print(temp)
     return map(lambda x: url_base + x, t)
 
 class Dler(DBN.DownLoadBase):

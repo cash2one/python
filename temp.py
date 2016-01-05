@@ -95,3 +95,6 @@ df1=df1.drop(['productHref','id'],axis=1)
 df1=df1.sort(columns=['shopName','gradeHref'])
 df2=df1.drop_duplicates(['shopName'])
 df2.to_csv(path_or_buf='/home/appdeploy/jd_all_shop.csv',index=False)
+
+import cookielib
+print cookielib.MozillaCookieJar(r'D:\spider\tmall\cookeis\cookies.txt')
