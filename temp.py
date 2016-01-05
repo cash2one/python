@@ -41,11 +41,12 @@ text = map(lambda x: x[0], text)
 for item in text:
     print(item)
 
-
 # 三年规划
 import pymysql
+
 connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8', database='jddata')
 import pandas as pd
+
 sql_1 = "SELECT t.companyName,t.productHref FROM `thirdPartShopInfo` t HAVING t.companyName!='-'"
 sql_2 = "SELECT t.companyName,t.productHref FROM `thirdPartShopInfo` t HAVING t.companyName='-'"
 sql_3 = "SELECT t.productHref,t.commentCount FROM `jdproductbaseinfo2database` t"
@@ -72,29 +73,35 @@ df8['ifThirdPart'] = df8['productHref'].apply(lambda x: 'YES' if len(x.split('/'
 # 手机、运动户外两个行业每周销量数据
 # 2015-12-07
 import pymysql
-connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8',database='elec_platform')
+
+connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8',
+                          database='elec_platform')
 import pandas as pd
+
 sql_1 = "SELECT t.`name`,t.monthsale,t.addr,t.spider_time FROM `tmall_baseinfo_everyweek` t"
 sql_2 = "SELECT t.`name`,t.major_business FROM `yms_tmall_shopinfo_com_withoutjudge` t"
-df1=pd.read_sql(sql=sql_1,con=connect)
-df1['date']=df1['spider_time'].apply(lambda x:x.split(' ')[0])
-df2=pd.read_sql(sql=sql_2,con=connect)
-df3=pd.merge(df1,df2,how='left',left_on='name',right_on='name')
-df4=df3.drop('spider_time',axis=1)
-temp=[u'手机',u'运动/户外']
-df5=df4[df4['major_business'].isin(temp)]
+df1 = pd.read_sql(sql=sql_1, con=connect)
+df1['date'] = df1['spider_time'].apply(lambda x: x.split(' ')[0])
+df2 = pd.read_sql(sql=sql_2, con=connect)
+df3 = pd.merge(df1, df2, how='left', left_on='name', right_on='name')
+df4 = df3.drop('spider_time', axis=1)
+temp = [u'手机', u'运动/户外']
+df5 = df4[df4['major_business'].isin(temp)]
 
 # JD_Guangdongprovice
 # create on:2015-12-25
 import pymysql
-connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8',database='jddata')
+
+connect = pymysql.connect(host='10.118.187.12', user='admin', password='admin', charset='utf8', database='jddata')
 import pandas as pd
-sql_1='SELECT * FROM `thirdPartShopInfo`;'
-df1=pd.read_sql(sql=sql_1,con=connect)
-df1=df1.drop(['productHref','id'],axis=1)
-df1=df1.sort(columns=['shopName','gradeHref'])
-df2=df1.drop_duplicates(['shopName'])
-df2.to_csv(path_or_buf='/home/appdeploy/jd_all_shop.csv',index=False)
+
+sql_1 = 'SELECT * FROM `thirdPartShopInfo`;'
+df1 = pd.read_sql(sql=sql_1, con=connect)
+df1 = df1.drop(['productHref', 'id'], axis=1)
+df1 = df1.sort(columns=['shopName', 'gradeHref'])
+df2 = df1.drop_duplicates(['shopName'])
+df2.to_csv(path_or_buf='/home/appdeploy/jd_all_shop.csv', index=False)
 
 import cookielib
+
 print cookielib.MozillaCookieJar(r'D:\spider\tmall\cookeis\cookies.txt')
