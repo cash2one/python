@@ -4,8 +4,8 @@ import sys
 import time
 import urllib
 
-from spiderFrame.downLoad.DownLoad_noFollow import DownLoader
-# from spiderFrame.parser.PageParser import PageParser
+from ms_spider_fw.downLoad.DownLoad_noFollow import DownLoader
+# from ms_spider_fw.parser.PageParser import PageParser
 from pyquery import PyQuery as pq
 from luxury_project.luxuryBrand.brandList import brandList
 

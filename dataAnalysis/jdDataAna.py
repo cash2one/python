@@ -1,8 +1,8 @@
 # coding:utf8
 
 __author__ = '613108'
-from spiderFrame.DBSerivce import DBService
-from spiderFrame.CSVService import CSV
+from ms_spider_fw.DBSerivce import DBService
+from ms_spider_fw.CSVService import CSV
 import sys
 
 reload(sys)

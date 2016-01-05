@@ -60,10 +60,10 @@ def getData(path):
     #     print(i,titleNeedToHandle[i])
     indexToHandleData = [0, 1, 14, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 20, 22, 23, 25, 26]
     # 配置项：需提供的额外数值，周数及爬取日期
-    week = 51
+    week = 52
     """每次更新数据至数据库之前请输入数据爬取日期
     """
-    spiderTime = '2015-12-21'
+    spiderTime = '2015-12-28'
     dataOk = []
     for item in data:
         temp = []

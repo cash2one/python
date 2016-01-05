@@ -5,9 +5,9 @@ __author__ = '613108'
 """
 
 import time
-from spiderFrame.DBSerivce import DBService
-from spiderFrame.downLoad import DownLoad_noFollow as DBN
-from spiderFrame.parser.PageParser import PageParser
+from ms_spider_fw.DBSerivce import DBService
+from ms_spider_fw.downLoad import DownLoad_noFollow as DBN
+from ms_spider_fw.parser.PageParser import PageParser
 
 
 # 源码下载：
@@ -82,7 +82,7 @@ class PPer(PageParser):
 
 def spiderMain():
     # 主程序
-    from spiderFrame.CSVService import CSV
+    from ms_spider_fw.CSVService import CSV
 
     dler = Dler()
     dler.downLoad(100)

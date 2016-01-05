@@ -2,7 +2,7 @@
 __author__ = '613108'
 import sys
 
-from spiderFrame.downLoad import DownLoader
+from ms_spider_fw.downLoad import DownLoader
 
 reload(sys)
 sys.setdefaultencoding('utf8')

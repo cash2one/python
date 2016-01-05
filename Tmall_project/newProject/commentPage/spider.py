@@ -1,6 +1,6 @@
 # coding:utf8
 __author__ = '613108'
-from spiderFrame.DBSerivce import DBService
+from ms_spider_fw.DBSerivce import DBService
 
 
 def commentHrefList():

@@ -1,6 +1,6 @@
 # coding:utf8
 __author__ = '613108'
-from spiderFrame import DBSerivce
+from ms_spider_fw import DBSerivce
 
 DB = DBSerivce.DBService(dbName='tmall_info', tableName='yms_tmall_shopinfo_com',
                          host='localhost', user='root', passwd='', charset='utf8')

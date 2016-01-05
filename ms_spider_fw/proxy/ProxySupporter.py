@@ -3,8 +3,8 @@ __author__ = '613108'
 """
 提供代理抓取、检测、持久化及代理返回等等功能
 """
-from spiderFrame.downLoad.DownLoader import DownLoader
-from spiderFrame.downLoad import DownLoad_noFollow as DBN
+from ms_spider_fw.downLoad.DownLoader import DownLoader
+from ms_spider_fw.downLoad import DownLoad_noFollow as DBN
 from pyquery import PyQuery as pq
 
 
