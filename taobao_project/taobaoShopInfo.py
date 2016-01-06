@@ -19,17 +19,26 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 socket.setdefaulttimeout(60)
 
+def kw_template(path=r'd:/spider/taobao/other/cow.txt'):
+    kw = u'荷兰牛栏 德国爱他美 荷兰美素 惠氏 德国喜宝有机 德国喜宝益生菌 德国特福芬 澳洲可瑞康 新西兰A2  雅培  ' \
+         u'英国惠氏 英国牛栏 英国爱他美  新西兰可瑞康 澳洲贝拉米 阿拉欧 Nannycare 日本明治 澳洲爱他美 Nutrilon ' \
+         u'SIMILAC 多美滋 Guigoz 美赞臣 意大利爱他美 桂格 固力果 德国凯莉泓乐 plasmon 意大利美林 澳滋 德国牛栏 ' \
+         u'美素佳儿 VIPLUS  安满 campina 卡瑞特滋   安佳 纽优乳  kinfield'
+    return [i for i in kw.split(' ') if i]
+
 def main_GetKeyWord():
     global queue_GetShopList_keyWord
     queue_GetShopList_keyWord = Queue(0)
-    from ms_spider_fw.DBSerivce import DBService
-
-    db = DBService('taobaodata', 'keyword')
-    keyword = db.getData(var='categoryTi')
-    # keyword = map(lambda x: x[0] + ',' + x[1], keyword)
-    keyword=set([item[0] for item in keyword])
+    # from ms_spider_fw.DBSerivce import DBService
+    #
+    # db = DBService('taobaodata', 'keyword')
+    # keyword = db.getData(var='categoryTi')
+    # # keyword = map(lambda x: x[0] + ',' + x[1], keyword)
+    # keyword = set([item[0] for item in keyword])
+    keyword=set(kw_template())
     for item in keyword:
         queue_GetShopList_keyWord.put(item)
+
 
 def jsonParse(str):
     t = str
@@ -88,15 +97,16 @@ class GetShopList(Thread):
                 dataUid = d.find('h4>a:nth-child(1)').attr('data-uid')
                 shopHref = 'http:' + d.find('h4>a:nth-child(1)').attr('href')
                 shopName = d.find('h4>a:nth-child(1)').text()
-                if d.find('h4>a:nth-child(2)').attr('title')==u'企业卖家':
-                    ifCompanySeller='YES'
-                else:ifCompanySeller='NO'
-                if ifCompanySeller=='YES':
-                    shopRank=d.find('.shop-leval a').attr('class')
-                    shopRank=shopRank if shopRank else '-'
+                if d.find('h4>a:nth-child(2)').attr('title') == u'企业卖家':
+                    ifCompanySeller = 'YES'
                 else:
-                    shopRank=d.find('h4>a:nth-child(2)').attr('class')
-                    shopRank=shopRank if shopRank else '-'
+                    ifCompanySeller = 'NO'
+                if ifCompanySeller == 'YES':
+                    shopRank = d.find('.shop-leval a').attr('class')
+                    shopRank = shopRank if shopRank else '-'
+                else:
+                    shopRank = d.find('h4>a:nth-child(2)').attr('class')
+                    shopRank = shopRank if shopRank else '-'
                 addr = d.find('.shop-address').text()
                 brand = d.find('.main-cat>a').text()
                 monthSale = d.find('.info-sale').text()
@@ -117,7 +127,7 @@ class GetShopList(Thread):
                         tempForProductPromot[i + 2] = productPrice
                         i += 3
                 Result = [shopName, shopHref, addr, brand, monthSale, productSum] + score + tempForProductPromot + [
-                    dataUid]+[ifCompanySeller,shopRank]
+                    dataUid] + [ifCompanySeller, shopRank]
                 queue_GetShopList_result.put(Result)
                 print(Result)
 
@@ -151,7 +161,7 @@ def main_GetShopList(threadCount=50):
                      'dsr_service_avg', 'dsr_sending_mark', 'dsr_sending_avg', 'sgr', 'srn', 'encryptedUserId',
                      'productDataNid_1', 'product_link_1', 'price_1', 'productDataNid_2', 'product_link_2', 'price_2',
                      'productDataNid_3', 'product_link_3', 'price_3', 'productDataNid_4', 'product_link_4', 'price_4',
-                     'shopDataUid','ifCompanySeller','shopRank']
+                     'shopDataUid', 'ifCompanySeller', 'shopRank']
             # 数据写入csv文件
             writer = MyCsv.Write_Csv(path=dirCheck.dirGen('d:/spider/taobao/baseInfo'), name='shopInfo',
                                      title=title, result=result)
@@ -168,7 +178,7 @@ def main_GetShopList(threadCount=50):
              'dsr_service_avg', 'dsr_sending_mark', 'dsr_sending_avg', 'sgr', 'srn', 'encryptedUserId',
              'productDataNid_1', 'product_link_1', 'price_1', 'productDataNid_2', 'product_link_2', 'price_2',
              'productDataNid_3', 'product_link_3', 'price_3', 'productDataNid_4', 'product_link_4', 'price_4',
-             'shopDataUid','ifCompanySeller','shopRank']
+             'shopDataUid', 'ifCompanySeller', 'shopRank']
     # 数据写入csv文件
     writer = MyCsv.Write_Csv(path=dirCheck.dirGen('d:/spider/taobao/baseInfo'), name='shopInfo',
                              title=title, result=result)
@@ -275,7 +285,7 @@ def main_ProductInfoFromListUrl(threadCount=1):
             print((url_base + str(i) + url_after, 'www.tmall.com'))
         else:
             queue_for_ProductInfoFromListUrl_url.put(
-                (url_base + str(i) + url_after, url_base + str(i - 60) + url_after))
+                    (url_base + str(i) + url_after, url_base + str(i - 60) + url_after))
 
     ProductInfoFromListUrl_thread = []
     for i in range(threadCount):
@@ -429,7 +439,9 @@ if __name__ == '__main__':
     # test(r'C:/Users/613108/Desktop/test.html')
 
     # main_GetKeyWord()
+
     main_GetShopList(200)
+
     # main_ShopItem(100)
     # main_ProductInfoFromListUrl(50)
     # productInfoFromLocalSrc(r'D:\spider\tmall\src')

@@ -4,7 +4,7 @@
 # Project:zhou_xiu_product
 # Author:yangmingsong
 
-from pyspider.libs.base_handler import BaseHandler,every
+from pyspider.libs.base_handler import *
 
 
 class Handler(BaseHandler):
@@ -47,26 +47,29 @@ class Handler(BaseHandler):
         d = response.doc
         # for temp in d('.item').items():
         #     self.on_result(self.detail_page(temp))
-        self.on_result(self.detail_page(d))
+        # self.on_result(self.detail_page(d))
+
+        res=self.detail_page(d)
+        for item in res['res']:
+            self.on_result(item)
+
         for temp in d('.Pagenum>a').items():
             if 'javascript' in temp.attr.href:
                 continue
             else:
                 self.crawl(temp.attr.href, callback=self.in_page)
     # over_ride
-    def on_result(self, result):
-        if not result:
-            return
-        assert self.task, "on_result can't outside a callback."
-        if self.is_debugger():
-            i=1
-            for item in result['res']:
-                self.task['count']=i
-                print (self.task, item)
-                i+=1
-        if self.__env__.get('result_queue'):
-            i=1
-            for item in result['res']:
-                self.task['count']=str(i)
-                i+=1
-                self.__env__['result_queue'].put(self.task, item)
+    # def on_result(self, result):
+    #     if not result:
+    #         return
+    #     assert self.task, "on_result can't outside a callback."
+    #     if self.is_debugger():
+    #         i=1
+    #         for item in result['res']:
+    #             self.task['count']=i
+    #             print (self.task, item)
+    #             i+=1
+    #     if self.__env__.get('result_queue'):
+    #         temp=result['res']
+    #         for item in temp:
+    #             self.__env__['result_queue'].put(self.task, item)

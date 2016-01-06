@@ -66,3 +66,4 @@ if __name__ == '__main__':
     # t = time.time() - t
     # print('*' * 16 + u'总计耗时：%f 秒' + '*' * 16) % t
     # one_to_N(r'D:\spider\jd\commentDetail\Total_Distinct_2015-08-30 18_39_49.csv')
+    # all_to_one_Distinct(r'D:\spider\taobao\baseInfo')
