@@ -5,6 +5,14 @@
 # Author:yangmingsong
 
 from pyspider.libs.base_handler import *
+import sys
+from ms_spider_fw.DBSerivce import DBService
+
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+db_server = DBService(dbName='spider', tableName='beibei', host='192.168.128.119',
+                      user='root', passwd='', charset='utf8')
 
 
 class Handler(BaseHandler):
@@ -25,8 +33,6 @@ class Handler(BaseHandler):
 
     def step_second(self, response):
         d = response.doc
-        # TODO:analysy the begin page,use step_third function [done]
-
         # get the brand page url(attr) from brand_page
         for t in d('.brand-full>a').items():
             self.crawl(t.attr('href'), callback=self.step_third)
@@ -48,17 +54,63 @@ class Handler(BaseHandler):
         # parser the product page and collect the product_info
         d = response.doc
         score = d('.eva-con>p>span').text().split(' ')
-        return {
-            'title': d('.title>h3').text(),
-            'price_del': d('.pink .price').text(),
-            'discount': d('.discount.view-SkuPriceDiscountInfo').text(),
-            'price_origin': d('.market .strike').text(),
-            'shopping_price': d('.view-ShippingFeeInfo').text(),
-            'shopping_from': d('.p1').text(),
-            'brand': d('.dec-con>p>span').text(),
-            'score_total': score[0],
-            'score_sending': score[1],
-            'score_express': score[-1],
-            # TODO
-            'express_supplier': score
-        }
+        # the next part is used for extract information from product_info_table
+        info_dict = {}
+        other_info = ''
+        for t in d('.props.clearfix>li').items():
+            if t:
+                # take care, the sep '：' is chinese characters
+                t_text = t.text().split('：')
+                if t_text[0] in (u'默认快递', u'材质', u'货号', u'产地', u'保持期', u'尺寸'):
+                    info_dict[t_text[0]] = t_text[1]
+                else:
+                    other_info += ':'.join(t_text) + '|'
+
+        return [
+            d('.title>h3').text(),
+            response.url,
+            d('.crumb a:nth-child(2)').text(),
+            d('.pink .price').text(),
+            d('.discount.view-SkuPriceDiscountInfo').text(),
+            d('.market .strike').text(),
+            d('.baoyou').text(),
+            d('.p1').text(),
+            d('.dec-con>p>span').text(),
+            score[0],
+            score[1],
+            score[-1],
+            info_dict.get(u'默认快递'),
+            info_dict.get(u'材质'),
+            info_dict.get(u'货号'),
+            info_dict.get(u'产地'),
+            info_dict.get(u'保持期'),
+            info_dict.get(u'尺寸'),
+            other_info[:-2]  # delete the last redundant symbols '|'
+        ]
+
+    def on_result(self, result):
+        db_server.createTable(tableTitle=[
+            'title',
+            'product_url',
+            'catalogue',
+            'price_del',
+            'discount',
+            'price_origin',
+            'shopping_price',
+            'shopping_from',
+            'brand',
+            'score_total',
+            'score_sending',
+            'score_express',
+            'express_supplier',
+            'material',
+            'article_number',
+            'make_in',
+            'expiration_date',
+            'size',
+            'other_info'
+        ])
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'
