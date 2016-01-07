@@ -72,6 +72,7 @@ class PPer(PageParser):
         """
         res = []
         d = self.d
+        print d.find('title').text()
         fw = d.find('#sm-offer-list>li')
         for f_w in fw:
             d = pq(f_w)
