@@ -72,7 +72,8 @@ class PPer(PageParser):
         """
         res = []
         d = self.d
-        print d.find('title').text()
+        key_word=d.find('title').text().split('_')[0]
+        print(d.find('title').text())
         fw = d.find('#sm-offer-list>li')
         for f_w in fw:
             d = pq(f_w)
@@ -88,6 +89,7 @@ class PPer(PageParser):
             product_title_sample=d.find('.sm-offerimg-title>a:nth-child(1)').attr('title')
             product_detail_sample=d.find('.sm-offerimg-des span').text()
             temp = [company_name,
+                    key_word,
                     sale,
                     href,
                     member_id,
@@ -96,7 +98,7 @@ class PPer(PageParser):
                     credit_detail_href,
                     goods_from,
                     product_title_sample,
-                    product_detail_sample,
+                    product_detail_sample[:100],
                     location]
             res.append(temp)
         return res
@@ -108,16 +110,18 @@ def spiderMain():
     :return:
     """
     dler = Dler()
-    dler.downLoad(3)
+    dler.downLoad(10)
 
-    DB = DBService(host='localhost',
-                   user='root',
-                   passwd='',
-                   charset='utf8',
-                   dbName='spider',
+    DB = DBService(#host='localhost',
+                   # user='root',
+                   # passwd='',
+                   # charset='utf8',
+                   # dbName='spider',
+                    dbName='alibaba',
                    tableName='alibaba_cow_powder_3')
     DB.createTable(tableTitle=
                    ['company_name',
+                    'keyword',
                     'sale',
                     'href',
                     'member_id',
