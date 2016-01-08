@@ -7,13 +7,37 @@
 from pyspider.libs.base_handler import *
 import sys
 from ms_spider_fw.DBSerivce import DBService
+import time
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-db_server = DBService(dbName='spider', tableName='beibei', host='192.168.128.119',
-                      user='root', passwd='', charset='utf8')
+db_server = DBService(dbName='industry_data__mon_baby', tableName='beibei', host='10.118.187.12',
+                      user='admin', passwd='admin', charset='utf8')
 
+
+# db_server.createTable(tableTitle=[
+#     'title',
+#     'product_url',
+#     'catalogue',
+#     'price_del',
+#     'discount',
+#     'price_origin',
+#     'shopping_price',
+#     'shopping_from',
+#     'brand',
+#     'score_total',
+#     'score_sending',
+#     'score_express',
+#     'express_supplier',
+#     'material',
+#     'article_number',
+#     'make_in',
+#     'expiration_date',
+#     'size',
+#     'other_info',
+#     'crawl_time'
+# ])
 
 class Handler(BaseHandler):
     crawl_config = {
@@ -23,6 +47,7 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl('http://www.beibei.com/category/dress.html', callback=self.step_first)
 
+    @config(age=10 * 24 * 60 * 60)
     def step_first(self, response):
         # get the brand_list page url(attr) from brand_page
         d = response.doc
@@ -85,31 +110,11 @@ class Handler(BaseHandler):
             info_dict.get(u'产地'),
             info_dict.get(u'保持期'),
             info_dict.get(u'尺寸'),
-            other_info[:-2]  # delete the last redundant symbols '|'
+            other_info[:-2],  # delete the last redundant symbols '|'
+            time.strftime('%Y-%m-%d %X', time.localtime())
         ]
 
     def on_result(self, result):
-        db_server.createTable(tableTitle=[
-            'title',
-            'product_url',
-            'catalogue',
-            'price_del',
-            'discount',
-            'price_origin',
-            'shopping_price',
-            'shopping_from',
-            'brand',
-            'score_total',
-            'score_sending',
-            'score_express',
-            'express_supplier',
-            'material',
-            'article_number',
-            'make_in',
-            'expiration_date',
-            'size',
-            'other_info'
-        ])
         if result:
             db_server.data2DB(data=result)
         else:
