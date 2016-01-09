@@ -17,6 +17,8 @@ sys.setdefaultencoding('utf8')
 
 db_server = DBService(dbName='industry_data__mon_baby', tableName='meitun', host='10.118.187.12',
                       user='admin', passwd='admin', charset='utf8')
+
+
 # db_server.createTable(tableTitle=[
 #     'product_url',
 #     'product_title',
@@ -96,12 +98,12 @@ class Handler(BaseHandler):
     def my_result(self, response):
         d = response.doc
         return [
-            response.url,
-            d('.sname').text(),
-            d('#meitun_pirce').text(),
+            response.url,  # page url
+            d('.sname').text(),  # page title
+            d('#meitun_pirce').text(),  # price sell
             d('.discount').text(),
-            d('#basic_price').text(),
-            d('.fcr').text(),
+            d('#basic_price').text(),  # oringin price
+            d('.fcr').text(),  # sale count
             # d('.freight').text(),
             time.strftime('%Y-%m-%d %X', time.localtime())
         ]

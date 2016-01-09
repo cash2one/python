@@ -31,15 +31,15 @@ class Handler(BaseHandler):
     def detail_page(self, response):
         d = response
         return {
-            'res':[{
-            "name": di('.tit>a').text(),
-            "brand": di('.tit>span').text(),
-            "product_url": di.find('.pic>a').attr('href'),
-            "size": di('.ssl_item>span').text(),
-            "showprice": di('.showprice').text(),
-            "delprice": di('.delprice').text()
-            }
-            for di in d('.item').items()]
+            'res': [{
+                        "name": di('.tit>a').text(),
+                        "brand": di('.tit>span').text(),
+                        "product_url": di.find('.pic>a').attr('href'),
+                        "size": di('.ssl_item>span').text(),
+                        "showprice": di('.showprice').text(),
+                        "delprice": di('.delprice').text()
+                    }
+                    for di in d('.item').items()]
         }
 
     # @config(age=10 * 24 * 60 * 60, priority=3)
@@ -49,7 +49,7 @@ class Handler(BaseHandler):
         #     self.on_result(self.detail_page(temp))
         # self.on_result(self.detail_page(d))
 
-        res=self.detail_page(d)
+        res = self.detail_page(d)
         for item in res['res']:
             self.on_result(item)
 
@@ -58,18 +58,11 @@ class Handler(BaseHandler):
                 continue
             else:
                 self.crawl(temp.attr.href, callback=self.in_page)
-    # over_ride
+
+    # TODO:for result store to mysql
+    def detail_page_mysql(self, response):
+        pass
+
+    # TODO:over_ride method,for result store to mysql
     # def on_result(self, result):
-    #     if not result:
-    #         return
-    #     assert self.task, "on_result can't outside a callback."
-    #     if self.is_debugger():
-    #         i=1
-    #         for item in result['res']:
-    #             self.task['count']=i
-    #             print (self.task, item)
-    #             i+=1
-    #     if self.__env__.get('result_queue'):
-    #         temp=result['res']
-    #         for item in temp:
-    #             self.__env__['result_queue'].put(self.task, item)
+    #     pass
