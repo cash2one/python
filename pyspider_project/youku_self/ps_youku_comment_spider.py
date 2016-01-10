@@ -43,11 +43,9 @@ class Handler(BaseHandler):
     @config(priority=3)
     # if using this function,result was handled by pyspider(json)
     def detail_page(self, response):
-        name = response.doc('.name').text() if response.doc('.name').text() else response.doc(
-            '.base_info>.title').text()
-        comment = response.doc('.comment').text() if response.doc('.comment').text() else response.doc(
-            '#videoTotalComment').text()
-        play = response.doc('.play').text() if response.doc('.play').text() else response.doc('#videoTotalPV>em').text()
+        name=response.doc('.name').text() if response.doc('.name').text() else response.doc('.base_info>.title').text()
+        comment=response.doc('.comment').text() if response.doc('.comment').text() else response.doc('#videoTotalComment').text()
+        play=response.doc('.play').text() if response.doc('.play').text() else response.doc('#videoTotalPV>em').text()
         return {
             "name": name,
             "rate": response.doc('.row1.rate .num').text(),
@@ -65,13 +63,12 @@ class Handler(BaseHandler):
         }
 
     # TODO:for result store to mysql
-    def detail_page_mysql(self, response):
+    def detail_page_mysql(self,response):
         pass
 
     # TODO:over_ride method,for result store to mysql
     # def on_result(self, result):
     #     pass
-
 
 if __name__ == '__main__':
     H = Handler()
