@@ -78,7 +78,11 @@ class Handler(BaseHandler):
     def my_result(self, response):
         # parser the product page and collect the product_info
         d = response.doc
-        score = d('.eva-con>p>span').text().split(' ')
+        # beibei self_support does not given score
+        try:
+            score = d('.eva-con>p>span').text().split(' ')
+        except:
+            score =['-','-','-']
         # the next part is used for extract information from product_info_table
         info_dict = {}
         other_info = ''

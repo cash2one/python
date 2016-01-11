@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# Created on:2016/1/5 14:56
-# Project:tmall_target_shop_comment
-# Author:yangmingsong
+
 
 from pyspider.libs.base_handler import *
 import time, random, urllib
@@ -44,10 +42,10 @@ def list2dict():
 
 class Handler(BaseHandler):
     crawl_config = {
-        # 'headers': {
-        #     'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
-        # },
-        # 'cookies': list2dict()
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
+        },
+        'cookies': list2dict()
     }
 
     # def gen_url(self):
@@ -55,16 +53,14 @@ class Handler(BaseHandler):
 
     def on_start(self):
         self.crawl(
-            'http://rate.taobao.com/user-rate-UOmc0MCcYvFcL.htm', callback=self.index_page, fetch_type='js',
-            js_script="""
-            function(){
-                windows.scrollTo(0,document.body.scrollHeight);
-            }"""
+                'http://rate.taobao.com/user-rate-UOmc0MCcYvFcL.htm', callback=self.index_page, fetch_type='js',
+                js_script="""function(){windows.scrollTo(0,document.body.scrollHeight);}"""
         )
 
     def index_page(self):
         print self.response.content
 
-if __name__=='__main__':
-    H=Handler()
+
+if __name__ == '__main__':
+    H = Handler()
     H.on_start()
