@@ -21,7 +21,8 @@ if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 
 # compile re pattern
-re_pat=re.compile(r'\d+.\d+.\d+.\d+:\d+')
+re_pat = re.compile(r'\d+.\d+.\d+.\d+:\d+')
+
 
 class Handler(BaseHandler):
     crawl_config = {
@@ -31,15 +32,15 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl(url_start, callback=self.step_first)
 
-    @config(age=2 * 24 * 60 * 60)
+    @config(age=3 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
-        for t in d('').items():
+        for t in d('dd>span>a').items():
             self.crawl(t.attr.href, callback=self.my_result)
 
     @config(priority=2)
     def my_result(self, response):
-        return []
+        return list(set(re.findall(re_pat, response.text)))
 
     # over ride method for result store to mysql
     def on_result(self, result):
