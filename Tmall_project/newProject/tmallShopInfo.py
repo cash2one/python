@@ -503,7 +503,7 @@ def main_CommentDetailCount(path, threadCount=50):
 
 if __name__ == '__main__':
     print('Start')
-    # test(r'C:/Users/613108/Desktop/test.html')
+    # proxy_test(r'C:/Users/613108/Desktop/proxy_test.html')
 
     # main_GetKeyWord()
     main_GetShopList(200)

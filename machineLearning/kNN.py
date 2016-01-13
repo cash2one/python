@@ -88,8 +88,8 @@ def datingClassTest(k=3):
 
 if __name__ == '__main__':
     # group, labels = createDataSet()
-    # test = classify0([1, 1], group, labels, 3)
-    # print test
+    # proxy_test = classify0([1, 1], group, labels, 3)
+    # print proxy_test
 
     # datingDataMat, datingLabels = file2matrix()
     # normDataSet,ranges,minVals=autoNorm(datingDataMat)

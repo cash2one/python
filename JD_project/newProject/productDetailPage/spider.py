@@ -97,11 +97,11 @@ def spiderMain():
             url, src = que.get()
             pPer = PPer(src)
             temp = pPer.pageParser()
-            # test=temp[0]
-            # if test=='-':
+            # proxy_test=temp[0]
+            # if proxy_test=='-':
             #     continue
             # else:
-            #     print(test)
+            #     print(proxy_test)
             print(temp[0])
             DB.data2DB(data=[url] + temp)
         else:

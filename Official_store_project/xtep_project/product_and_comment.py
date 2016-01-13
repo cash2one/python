@@ -255,7 +255,7 @@ if __name__=='__main__':
     # for item in Get_productInfo_thread:
     #     item.join()
 
-    # test
+    # proxy_test
     # Get_productInfo().start()
 
     # 结果持久化
