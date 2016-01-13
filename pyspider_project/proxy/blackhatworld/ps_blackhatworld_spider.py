@@ -7,6 +7,7 @@
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
 import re
+import time
 
 # config_text
 db_name = 'b2c_base'
@@ -40,7 +41,8 @@ class Handler(BaseHandler):
 
     @config(priority=2)
     def my_result(self, response):
-        return list(set(re.findall(re_pat, response.text)))
+        t=list(set(re.findall(re_pat, response.text)))
+        return map(lambda x:[x,time.strftime('%Y-%m-%d %X', time.localtime())],t)
 
     # over ride method for result store to mysql
     def on_result(self, result):
