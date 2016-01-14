@@ -46,8 +46,8 @@ class Handler(BaseHandler):
     def in_page(self, response):
         d = response.doc
         # for temp in d('.item').items():
-        #     self.on_result(self.step_second(temp))
-        # self.on_result(self.step_second(d))
+        #     self.on_result(self.step_third(temp))
+        # self.on_result(self.step_third(d))
 
         res = self.detail_page(d)
         for item in res['res']:

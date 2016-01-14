@@ -40,7 +40,7 @@ def test(proxy, port=None, timeout=1):
     try:
         res = s.get('http://httpbin.org/ip', proxies=proxy_OK, timeout=timeout)
     except Exception, e:
-        print e.message
+        # print e.message
         return False
 
     ip_return = re.findall(patt_ip, res.text)

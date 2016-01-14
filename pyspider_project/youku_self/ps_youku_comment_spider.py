@@ -22,7 +22,7 @@ class Handler(BaseHandler):
     @config(age=10 * 24 * 60 * 60, priority=3)
     def in_page(self, response):
         # for each in response.doc('.p-meta.pa').items():
-        #     self.crawl(each.attr.href,callback=self.step_second)
+        #     self.crawl(each.attr.href,callback=self.step_third)
         for each in response.doc('.yk-filter-panel div:nth-child(2) a').items():
             self.crawl(each.attr.href, callback=self.in2_page)
 

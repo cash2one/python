@@ -5,7 +5,7 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import time
 print('*'*20+u'开始抓取所有在售品牌信息'+'*'*20)
-# def run(self):
+# def run_test(self):
 # driver=webdriver.Firefox()
 # driver=webdriver.Chrome()
 driver=webdriver.PhantomJS()

@@ -43,8 +43,7 @@ def test():
         proxy_s = {'http': 'http://%s' % proxy}
         try:
             res = s.get('http://httpbin.org/ip', proxies=proxy_s, timeout=1)
-        except Exception, e:
-            print e.message
+        except:
             continue
         ip_return = re.findall(patt_ip, res.text)
         if ip_return \
@@ -57,7 +56,7 @@ def test():
             print('%s is okay.' % proxy)
             print res.text
             print '=' * 50
-            print qu_proxy_test.qsize(), qu_proxy_ok.qsize()
+            print qu_proxy_test.qsize(),qu_proxy_ok.qsize()
 
 
 def muti_thread_test(n):

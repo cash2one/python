@@ -33,7 +33,7 @@ def get_soup(url,proxy):
 #         response.close()
 #         return soup
 #
-#     def run(self):
+#     def run_test(self):
 #         self.get_soup()
 #
 # if __name__=='__main__':

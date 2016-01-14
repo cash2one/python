@@ -10,6 +10,7 @@ from ms_spider_fw.DBSerivce import DBService
 import time
 
 reload(sys)
+# noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf8')
 
 db_server = DBService(dbName='industry_data__mon_baby', tableName='beibei', host='10.118.187.12',
@@ -47,7 +48,7 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl('http://www.beibei.com/category/dress.html', callback=self.step_first)
 
-    @config(age=10 * 24 * 60 * 60)
+    @config(age=1 * 24 * 60 * 60)
     def step_first(self, response):
         # get the brand_list page url(attr) from brand_page
         d = response.doc
@@ -56,6 +57,7 @@ class Handler(BaseHandler):
             if 'category' in t_inner:
                 self.crawl(t_inner, callback=self.step_second)
 
+    @config(age=2 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         # get the brand page url(attr) from brand_page
@@ -66,23 +68,21 @@ class Handler(BaseHandler):
         for i in d('.brand-page>a').items():
             self.crawl(i.attr('href'), callback=self.step_second)
 
+    @config(age=10 * 24 * 60 * 60)
     def step_third(self, response):
         # get the product url(attr->href) from brand shop page
         d = response.doc
         for t in d('.view-ItemListItem>a').items():
-            self.crawl(t.attr('href'), callback=self.my_result)
+            self.crawl(t.attr('href'), callback=self.detail_page)
 
-    def step_fourth(self, response):
-        pass
-
-    def my_result(self, response):
+    def detail_page(self, response):
         # parser the product page and collect the product_info
         d = response.doc
         # beibei self_support does not given score
         try:
             score = d('.eva-con>p>span').text().split(' ')
-        except:
-            score =['-','-','-']
+        except Exception:
+            score = ['-', '-', '-']
         # the next part is used for extract information from product_info_table
         info_dict = {}
         other_info = ''

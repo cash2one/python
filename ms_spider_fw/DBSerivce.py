@@ -1,5 +1,6 @@
 # coding:utf8
-__author__ = 'YangMingSong'
+# __author__ = 'YangMingSong'
+
 import pymysql
 
 """
@@ -33,12 +34,12 @@ class DBBase:
             self.passwd = None
             self.charset = None
 
-    def isDBExist(self):
-        """
-        # 返回数据库实例是否存在【待实现】
-        :return:
-        """
-        pass
+    # def isDBExist(self):
+    #     """
+    #     # 返回数据库实例是否存在【待实现】
+    #     :return:
+    #     """
+    #     pass
 
     def genConn(self):
         """
@@ -47,10 +48,10 @@ class DBBase:
         """
         if self.host:
             conn = pymysql.connect(
-                host=self.host, user=self.user, passwd=self.passwd, charset=self.charset, db=self.dbName)
+                    host=self.host, user=self.user, passwd=self.passwd, charset=self.charset, db=self.dbName)
         else:
             conn = pymysql.connect(
-                host='10.118.187.12', user='admin', passwd='admin', charset='utf8', db=self.dbName)
+                    host='10.118.187.12', user='admin', passwd='admin', charset='utf8', db=self.dbName)
         return conn
 
 
@@ -133,7 +134,8 @@ class DBService(DBBase):
         # 创建之前会先行检查表格是否已经存在，若不存在直接创建；
         # 如果表格已经存在会要求确认是否覆盖前表，如果要求覆盖则会执行删除表格操作后再重新创建表格。
         # x表示如果存在表格，默认直接跳过（不会覆盖更新）
-        :param tableTitle:
+        :param x: if the table exist,given 'Y' will drop it and create new one,default is 'N'
+        :param tableTitle:table title
         :return:
         """
         if not tableTitle:
@@ -144,24 +146,27 @@ class DBService(DBBase):
             if isTableExist:
                 if x.upper() == 'N':
                     return None
+                elif x.upper() == 'Y':
+                    # rebuild by yangmingsong on 2016-01-14
+                    # else:
+                    #     x = raw_input(u'|->表已存在，是否需要重新创建（将删除前面已经存在的表格）？\
+                    # 是，Y；否，N ……\n')
+                    #     if x.upper() == 'Y':
+                    sql = 'drop table %s' % self.tableName
+                    conn = self.genConn()
+                    cursor = conn.cursor()
+                    cursor.execute(sql)
+                    conn.commit()
+                    conn.close()
+                    self._createTable(tableTitle=tableTitle)
+                    return 1
                 else:
-                    x = raw_input(u'|->表已存在，是否需要重新创建（将删除前面已经存在的表格）？是，Y；否，N ……\n')
-                    if x.upper() == 'Y':
-                        sql = 'drop table %s' % self.tableName
-                        conn = self.genConn()
-                        cursor = conn.cursor()
-                        cursor.execute(sql)
-                        conn.commit()
-                        conn.close()
-                        self.forCreateTable(tableTitle=tableTitle)
-                        return 1
-                    else:
-                        return None
+                    return None
             else:
-                self.forCreateTable(tableTitle=tableTitle)
+                self._createTable(tableTitle=tableTitle)
                 return 1
 
-    def forCreateTable(self, tableTitle):
+    def _createTable(self, tableTitle):
         """
         # 用于类内部调用，不建议外部直接调用【可能出错】
         :param tableTitle:
@@ -169,7 +174,9 @@ class DBService(DBBase):
         """
         conn = self.genConn()
         cursor = conn.cursor()
-        typeForTitle = ['varchar(300)' for i in tableTitle]
+        # rebuild by yangmingsong on 2016-01-14
+        # typeForTitle = ['varchar(300)' for i in tableTitle]
+        typeForTitle = map(lambda x: 'varchar(300)', tableTitle)
         titleForSql = zip(tableTitle, typeForTitle)
         titleForSql = ','.join([' '.join(item) for item in titleForSql])  # 组织sql语句
         createTableSql = \
@@ -239,7 +246,9 @@ class DBService(DBBase):
                 return 0
 
         titleForSql = ','.join(tableTitle)
-        valuesForSql = ','.join(['%s' for i in tableTitle])
+        # rebuild by yangmingsong on 2016-01-14
+        # valuesForSql = ','.join(['%s' for i in tableTitle])
+        valuesForSql = ','.join(map(lambda x: '%s', tableTitle))
         conn = self.genConn()
         cursor = conn.cursor()
         tableName = self.tableName
