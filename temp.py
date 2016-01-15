@@ -105,3 +105,13 @@ df2.to_csv(path_or_buf='/home/appdeploy/jd_all_shop.csv', index=False)
 import cookielib
 
 print cookielib.MozillaCookieJar(r'D:\spider\tmall\cookeis\cookies.txt')
+
+
+
+import requests
+t=requests.get('http://www.amazon.cn/运动-户外-休闲/dp/B00OC4V7I4')
+from pyquery.pyquery import PyQuery as pq
+d=pq(t.text)
+for item in d.my_text():
+    if len(item)<200:
+        print item.decode('gbk','ignore')
