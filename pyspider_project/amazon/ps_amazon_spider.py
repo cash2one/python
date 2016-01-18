@@ -51,7 +51,9 @@ class Handler(BaseHandler):
     def my_result(self, response):
         d = response.doc
         txt = response.text
+
         # for join the company_list_page url , only third_part seller would got it
+        # match market_id
         pat = re.compile(r'pf_rd_m=.+&')
         try:
             market_id = re.findall(pat, txt)[0]

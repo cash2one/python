@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/1/17 13:57
+# Project:ps_dangdang_spider
+# Author:yangmingsong_HOME
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+
+# config_text
+# when start a spider,you should modify the next config text first
+
+db_name = ''  # database name for store data , string
+table_name = ''  # table name for store data , string
+table_title = ''  # table title for store data , should be string separated by ','
+url_start = 'http://category.dangdang.com/?ref=www-0-C'
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+
+# now,the next is spider script
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+
+
+# if not db_server.isTableExist():
+#     db_server.createTable(tableTitle=table_title.split(','))
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl(url_start, callback=self.step_first)
+
+    @config(age=2 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        for t in d('.classify_kind_detail>li>a').items():
+            if not t.attr('class'):
+                self.crawl(t.attr.href, callback=self.step_second)
+
+    def step_second(self, response):
+        d = response.doc
+        for t in d('.inner .name>a').items():
+            self.crawl(t.attr.href, callback=self.my_result)
+
+    @config(priority=2)
+    def my_result(self, response):
+        d = response.doc
+        return [
+            d('.breadcrumb>a').text(),  # catalogue
+            d('.head>h1').text(),  # product title
+            d('#salePriceTag').text(),  # price
+            d('#promo span').text(),  # promotion
+            d('#comm_num_up>i').text(),  # recommend
+            d('#comm_num_up>a>i').text(),  # comment count
+            d('#delivery_address').attr('default_address'),  # delivery address
+            d('#color_wrap .color a').text(),  # colors
+            d('.size li>a').text(),  # sizes
+            d('.legend .name').text(),  # shop name
+            d('.legend .name').attr('href'),  # shop href
+            d('.shop_score_box_p').text(),  # total score
+            d('.mall_goods_foursort_style_frame').text()  # product detail params
+        ]
+
+        # over ride method for result store to mysql
+        # def on_result(self, result):
+        #     if result:
+        #         db_server.data2DB(data=result)
+        #     else:
+        #         print u'result-->return None'
