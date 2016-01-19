@@ -6,22 +6,22 @@
 
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
+import time
 
 # config_text
 # when start a spider,you should modify the next config text first
 
-db_name = ''  # database name for store data , string
-table_name = ''  # table name for store data , string
-table_title = ''  # table title for store data , should be string separated by ','
+db_name = 'platform_data'  # database name for store data , string
+table_name = 'dangdang'  # table name for store data , string
+table_title = 'catalogue,product_name,price,promo_price,promotion,recommend_count,comment_count,' \
+              'delivery_address,shop_name,shop_href,product_params,crawl_time'
 url_start = 'http://category.dangdang.com/?ref=www-0-C'
 connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
 
 # now,the next is spider script
 db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
-
-
-# if not db_server.isTableExist():
-#     db_server.createTable(tableTitle=table_title.split(','))
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
 
 
 class Handler(BaseHandler):
@@ -37,12 +37,26 @@ class Handler(BaseHandler):
         d = response.doc
         for t in d('.classify_kind_detail>li>a').items():
             if not t.attr('class'):
-                self.crawl(t.attr.href, callback=self.step_second)
+                u = t.attr.href
+                if not 'cp' in u:  # filter books_page link
+                    self.crawl(u, callback=self.step_second)
 
+    @config(age=10 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         for t in d('.inner .name>a').items():
             self.crawl(t.attr.href, callback=self.my_result)
+
+        c = d('.page>span:nth-child(3)').text()
+        if c:
+            url_s = 'http://category.dangdang.com/cid4002853-pg'
+            url_e = '.html'
+            p_c = int(c.split('/')[1])
+            url_list = map(lambda x: url_s + str(x) + url_e, range(2, p_c + 1, 1))
+            for item in url_list:
+                print item
+            for t in url_list:
+                self.crawl(t, callback=self.step_second)
 
     @config(priority=2)
     def my_result(self, response):
@@ -51,21 +65,22 @@ class Handler(BaseHandler):
             d('.breadcrumb>a').text(),  # catalogue
             d('.head>h1').text(),  # product title
             d('#salePriceTag').text(),  # price
-            d('#promo span').text(),  # promotion
+            d('#promo_price').attr('prpr'),  # promo price
+            d('#promo span').text().replace(u'店铺VIP 登录 后确认是否享有此优惠 ',''),  # promotion
             d('#comm_num_up>i').text(),  # recommend
             d('#comm_num_up>a>i').text(),  # comment count
             d('#delivery_address').attr('default_address'),  # delivery address
-            d('#color_wrap .color a').text(),  # colors
-            d('.size li>a').text(),  # sizes
-            d('.legend .name').text(),  # shop name
-            d('.legend .name').attr('href'),  # shop href
-            d('.shop_score_box_p').text(),  # total score
-            d('.mall_goods_foursort_style_frame').text()  # product detail params
+            # d('#color_wrap .color a').text(),  # colors
+            # d('.size li>a').text(),  # sizes
+            d('.name').text(),  # shop name
+            d('.name').attr('href'),  # shop href
+            d('.mall_goods_foursort_style_frame').text(),  # product detail params
+            time.strftime('%Y-%m-%d %X', time.localtime())
         ]
 
-        # over ride method for result store to mysql
-        # def on_result(self, result):
-        #     if result:
-        #         db_server.data2DB(data=result)
-        #     else:
-        #         print u'result-->return None'
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'

@@ -106,12 +106,96 @@ import cookielib
 
 print cookielib.MozillaCookieJar(r'D:\spider\tmall\cookeis\cookies.txt')
 
-
-
 import requests
-t=requests.get('http://www.amazon.cn/运动-户外-休闲/dp/B00OC4V7I4')
+
+t = requests.get('http://www.amazon.cn/运动-户外-休闲/dp/B00OC4V7I4')
 from pyquery.pyquery import PyQuery as pq
-d=pq(t.text)
+
+d = pq(t.text)
 for item in d.my_text():
-    if len(item)<200:
-        print item.decode('gbk','ignore')
+    if len(item) < 200:
+        print item.decode('gbk', 'ignore')
+
+from pyquery.pyquery import PyQuery as pq
+
+with open('D:/temp1.html', 'r')as f:
+    t = f.read()
+d = pq(t)
+f = open(u'儿童手表_brand.txt', 'w')
+for x in d.find('.av-scroll>li>a').items():
+    print x.attr('title').decode('gbk', 'ignore')
+    f.write(x.attr('title') + ' ')
+f.close()
+
+from myTool import MyCsv
+
+with open('d:/child_watch_brand.txt', 'r')as f:
+    t = f.read()
+t_1 = map(lambda x: x.split('/'), t.split(' '))
+f_1 = []
+for i_0 in t_1:
+    for i_1 in i_0:
+        f_1.append([i_1, i_0[0], u'儿童手表'])
+
+with open('d:/intelligent_watch_brand.txt', 'r')as f:
+    t = f.read()
+t_2 = map(lambda x: x.split('/'), t.split(' '))
+f_2 = []
+for i_0 in t_2:
+    for i_1 in i_0:
+        f_2.append([i_1, i_0[0], u'智能手表'])
+
+with open('d:/sweep_machine_brand.txt', 'r')as f:
+    t = f.read()
+t_3 = map(lambda x: x.split('/'), t.split(' '))
+f_3 = []
+for i_0 in t_3:
+    for i_1 in i_0:
+        f_3.append([i_1, i_0[0], u'扫地机器人'])
+
+ff = f_1 + f_2 + f_3
+
+f = MyCsv.Write_Csv('d:/', 'brand_list.csv', title=['brand', 'detail', u'catalogue'], result=ff)
+
+
+# rebuild on 2016/01/18
+# tmall shop_search page parser
+import re, json
+
+with open('D:/demo.html', 'r')as f:
+    src = f.read()
+pat = re.compile(r'g_page_config = {.+};')
+temp = re.findall(pat, src)[0][16:-1]
+res = json.loads(temp)
+res = res['mods']['shoplist']['data']['shopItems']
+
+for item in res:
+    item_inner_1 = item['dsrInfo']
+    more_less_t = ['mgDomClass', 'sgDomClass', 'cgDomClass']
+    more_less = map(lambda x: item_inner_1[x], more_less_t)
+    tempForScoreGet_t = ['mas', 'mg', 'sas', 'sg', 'cas', 'cg', 'sgr', 'srn', 'encryptedUserId']
+    item_inner_2 = json.loads(item['dsrInfo']['dsrStr'])
+    score = map(lambda x: item_inner_2[x], tempForScoreGet_t)
+    dataUid = item['uid']
+    shopHref = 'http:' + item['shopUrl']
+    shopName = item['title']
+    addr = item['provcity']
+    brand = item['mainAuction']
+    monthSale = item['totalsold']
+    productSum = item['procnt']
+
+    tempForProductPromot = reduce(lambda x, y: x + y,
+                                  map(lambda x: [x['nid'], x['url'], x['price']], item['auctionsInshop']))
+
+    Result = [shopName, shopHref, addr, brand, monthSale, productSum] + score + tempForProductPromot + [
+        dataUid]
+    for item in Result:
+        print item
+
+
+with open('D:\spider\tmall\2016-01-18\shopInfo_2016-01-18 19_11_25.csv','r')as f:
+    t=f.readlines()
+
+t=map(lambda x:x.split(','),t)
+for item in t[:100]:
+    print(item)

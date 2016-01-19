@@ -52,13 +52,12 @@ class Handler(BaseHandler):
     }
 
     @every(minutes=24 * 60)
-    @config(age=10 * 24 * 60 * 60)
     def on_start(self):
         self.crawl(catalog_url(), callback=self.step_first, fetch_type='js',
                    js_script="""function(){windows.scrollTo(0,document.body.scrollHeight);}""")
 
     # function for handle inner_framework using phantomJS
-    @config(age=10 * 24 * 60 * 60)
+    @config(age=2 * 24 * 60 * 60)
     def on_start_again(self, url):
         driver = PhantomJS()
         driver.get(url)

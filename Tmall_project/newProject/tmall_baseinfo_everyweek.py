@@ -1,17 +1,15 @@
 # coding:utf8
-__author__ = '613108'
+# __author__ = '613108'
 
-"""
 # This script is used to unique tmall data(crawl weekly),and store date to mysql_db ;
 # before using , you should modify crawled_date in cofing text .
-"""
 
 from dataAnalysis import tmallAnalysis
 from ms_spider_fw.DBSerivce import DBService
 import datetime
 
 # config text:
-spider_time = datetime.date(2016, 1, 11)  # crawled_date should be modified before use
+spider_time = datetime.date(2016, 1, 18)  # crawled_date should be modified before use
 spider_week = spider_time.strftime('%U')
 
 

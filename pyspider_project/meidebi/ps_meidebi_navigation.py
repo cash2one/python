@@ -14,6 +14,7 @@ base:
 
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
+import time
 
 db_server = DBService(dbName='b2c_base', tableName='b2c_website_list_meidebi', host='10.118.187.12',
                       user='admin', passwd='admin', charset='utf8')
@@ -27,7 +28,8 @@ db_server.createTable(tableTitle=[
     'total_score',
     'quality_score',
     'express_service_score',
-    'customer_service_score'
+    'customer_service_score',
+    'crawl_time'
 ])
 
 
@@ -64,7 +66,8 @@ class Handler(BaseHandler):
             d('.point.hl_orange.fl').text(),  # total score
             d('.item:nth-child(1)>b').text(),  # product quality score
             d('.item:nth-child(2)>b').text(),  # express service score
-            d('.item:nth-child(3)>b').text()  # cutomer service score
+            d('.item:nth-child(3)>b').text(),  # cutomer service score
+            time.strftime('%Y-%m-%d %X', time.localtime())
         ]
 
     # over ride method for result store to mysql

@@ -14,6 +14,7 @@ base:
 
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
+import time
 
 db_server = DBService(dbName='b2c_base', tableName='b2c_website_list_b2ct', host='10.118.187.12',
                       user='admin', passwd='admin', charset='utf8')
@@ -25,7 +26,7 @@ db_server = DBService(dbName='b2c_base', tableName='b2c_website_list_b2ct', host
 #     'website_slogan',
 #     'b2ct_link',
 #     'url',
-#     'website_name'
+#     'website_name','crawl_time'
 # ])
 
 class Handler(BaseHandler):
@@ -53,7 +54,8 @@ class Handler(BaseHandler):
              t.attr('title'),  # title for the href
              t.attr.href,  # href for redirect to target website
              'http://www.' + t.attr.href.split('/')[-1][:-5] + '.com',  # new target website url
-             t('img').attr('alt')]
+             t('img').attr('alt'),
+             time.strftime('%Y-%m-%d %X', time.localtime())]
             for t in fw
             ]
 

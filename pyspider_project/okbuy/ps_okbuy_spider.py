@@ -31,7 +31,7 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl(url_start, callback=self.step_first)
 
-    @config(age=10 * 24 * 60 * 60)
+    @config(age=2 * 24 * 60 * 60)
     def step_first(self, response):
         url_base = 'http://www.okbuy.com/'
         for each in response.doc('.t-abcconr-new>a').items():
@@ -39,6 +39,7 @@ class Handler(BaseHandler):
             url = urlparse.urljoin(url_base, t.path)
             self.crawl(url, callback=self.step_second)
 
+    @config(age=10 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         for t in d('.frame .altName>a').items():

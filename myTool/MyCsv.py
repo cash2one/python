@@ -1,9 +1,11 @@
 # coding:utf-8
-__author__ = '613108'
-import csv, time
+# __author__ = '613108'
+
+import csv
+import time
 
 
-class Write_Csv():
+class Write_Csv:
     def __init__(self, path, name, title, result):
         self.result = result
         self.title = title
