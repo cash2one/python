@@ -199,3 +199,7 @@ with open('D:\spider\tmall\2016-01-18\shopInfo_2016-01-18 19_11_25.csv','r')as f
 t=map(lambda x:x.split(','),t)
 for item in t[:100]:
     print(item)
+
+from ms_spider_fw.DBSerivce import DBService
+dbs=DBService(dbName='b2c_base',tableName='proxy_ok')
+t=dbs.get_data_rand(var='proxy_port')

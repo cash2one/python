@@ -77,16 +77,32 @@ class DBService(DBBase):
         conn.close()
         return res
 
-    def getData(self, var='*', limit=None, distinct=False):
+    def get_data_rand(self, var='*'):
+        """
+        build on :2016-01-20
+        get one data by rand ,limit 1
+        :param var:
+        :return:
+        """
+        return self._getData(var=var, limit=1, distinct=False, rand=True)[0][0]
+
+    def getData(self, var='*', limit=None, distict=False):
+        """
+        build on :2016-01-20
+        get data from mysql database
+        :param var:
+        :param limit:
+        :param distict:
+        :return:
+        """
+        return self._getData(var=var, limit=limit, distinct=distict, rand=False)
+
+    def _getData(self, var='*', limit=None, distinct=False, rand=False):
         """
         # 依据var变量参数选择返回值;
         # var可为字符串或列表，不指定var则返回全部列数据；
         # limit可指定返回观测数量，不指定则返回全部观测数据；
         # distinct提供数据去重支持，默认为False
-        :param var:
-        :param limit:
-        :param distinct:
-        :return:
         """
         isTableExist = self.isTableExist()
         if isTableExist:
@@ -98,22 +114,25 @@ class DBService(DBBase):
         conn = self.genConn()
         cursor = conn.cursor()
         sql = None
-        if var == '*':
-            sql = 'select * from %s' % self.tableName
-        elif isinstance(var, list):
-            tempforsql = ','.join(var)
-            sql = 'select ' + tempforsql + ' from %s' % self.tableName
-        elif isinstance(var, str):
-            sql = 'select %s from %s' % (var, self.tableName)
-        else:
-            print(u'-->getData ->var 参数有误，请检查参数。')
+        if not rand:
+            if var == '*':
+                sql = 'select * from %s' % self.tableName
+            elif isinstance(var, list):
+                tempforsql = ','.join(var)
+                sql = 'select ' + tempforsql + ' from %s' % self.tableName
+            elif isinstance(var, str):
+                sql = 'select %s from %s' % (var, self.tableName)
+            else:
+                print(u'-->getData ->var 参数有误，请检查参数。')
 
-        if not limit:
-            pass
-        elif isinstance(limit, int):
-            sql = sql + ' LIMIT ' + str(limit)
+            if not limit:
+                pass
+            elif isinstance(limit, int):
+                sql = sql + ' LIMIT ' + str(limit)
+            else:
+                print(u'-->getData ->limit 参数有误，请检查参数。')
         else:
-            print(u'-->getData ->limit 参数有误，请检查参数。')
+            sql = 'select %s from %s order by rand() limit 1' % (var, self.tableName)
 
         cursor.execute(sql)
         data = cursor.fetchall()
