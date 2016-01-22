@@ -76,3 +76,6 @@ class Handler(BaseHandler):
             db_server.data2DB(data=result)
         else:
             print u'result-->return None'
+
+if __name__=='__main__':
+    H=Handler()

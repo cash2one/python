@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Created on:2016/1/13 9:57
-# Project:ps_httpbin_proxy_test
+# Project:httpbin_proxy_test
 # Author:yangmingsong
 
 from ms_spider_fw.DBSerivce import DBService
@@ -71,7 +71,7 @@ def muti_thread_test(n):
 
 
 if __name__ == '__main__':
-    muti_thread_test(1000)
+    muti_thread_test(5000)
     print '+' * 50
     while qu_proxy_ok.qsize():
         print qu_proxy_ok.get()

@@ -86,7 +86,7 @@ class DBService(DBBase):
         """
         return self._getData(var=var, limit=1, distinct=False, rand=True)[0][0]
 
-    def getData(self, var='*', limit=None, distict=False):
+    def getData(self, var='*', limit=None, distinct=False):
         """
         build on :2016-01-20
         get data from mysql database
@@ -95,7 +95,7 @@ class DBService(DBBase):
         :param distict:
         :return:
         """
-        return self._getData(var=var, limit=limit, distinct=distict, rand=False)
+        return self._getData(var=var, limit=limit, distinct=distinct, rand=False)
 
     def _getData(self, var='*', limit=None, distinct=False, rand=False):
         """

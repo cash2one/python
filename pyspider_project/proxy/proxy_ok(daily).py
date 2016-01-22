@@ -24,7 +24,7 @@ for table_name in table_name_s.split(','):
 qu_proxy_test = qu(0)
 qu_proxy_ok = qu(0)
 
-for t in proxy_list:
+for t in set(proxy_list):
     qu_proxy_test.put(t)
 
 

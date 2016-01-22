@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/1/19 17:52
+# Project:gome_spider_base
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+import urllib
+
+# config_text
+db_name = 'platform_data'
+table_name = 'gome_base_page'
+table_title = 'catalogue,product_info_json,crawl_time'
+url_start = 'http://list.gome.com.cn/'  # start url for crawl,string
+# connect string , usually no need to modify
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+
+# script
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
+        }
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl(url_start, callback=self.step_first, retries=100)
+
+    @config(age=2 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        for t in d('.in>a').items():
+            self.crawl(t.attr.href, callback=self.step_second, retries=100)
+
+    def step_second(self, response):
+        d = response.doc
+        catalogue = {
+            "catalogue": d('.nSearch-crumb.clearfix').text().replace(u'全部清空 ', '')
+        }
+        p_t = d('#mp-currentNumber').attr('data-totalpagenum')
+        p_n = d('#mp-currentNumber').text()
+
+        def timestamp(x):
+            return "&_=" + '%d' % ((time.time() + x) * 1000)
+
+        try:
+            if int(p_n) & int(p_t):
+                # build request url for download json files
+                url_s = 'http://list.gome.com.cn/cloud/asynSearch?callback=' \
+                        'callback_product&module=product&from=category&page='
+                url_m = '&paramJson='
+                params = d('#searchReq').text()[1:-1]
+                url_e = '{' + urllib.quote(params).replace(urllib.quote(' '), '+') + '}'
+                urls = map(lambda x: url_s + str(x) + url_m + url_e + timestamp(x), range(int(p_n), int(p_t) + 1))
+                # this action will return a json file
+                self.crawl(urls, callback=self.my_result, retries=100, save=catalogue)
+        except ValueError, e:
+            print e.message
+
+    @config(priority=2)
+    def my_result(self, response):
+        json_file = response.text.replace('callback_product(', '')[:-1]
+        catalogue = response.save.get('catalogue')
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            catalogue,
+            json_file,
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'
