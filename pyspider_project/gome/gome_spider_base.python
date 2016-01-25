@@ -69,7 +69,10 @@ class Handler(BaseHandler):
     @config(priority=2)
     def my_result(self, response):
         json_file = response.text.replace('callback_product(', '')[:-1]
-        catalogue = response.save.get('catalogue')
+        if response.save:
+            catalogue = response.save.get('catalogue')
+        else:
+            catalogue = None
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return [
             catalogue,

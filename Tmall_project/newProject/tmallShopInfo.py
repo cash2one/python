@@ -112,7 +112,12 @@ class GetShopList(Thread):
             url = queue_GetShopList_url.get()
             src = myUrlOpen.requestByProxy(url)
             pat = re.compile(r'g_page_config = {.+};')
-            temp = re.findall(pat, src)[0][16:-1]
+            try:
+                temp = re.findall(pat, src)[0][16:-1]
+            except IndexError:
+                print url
+                print src
+                continue
             res = json.loads(temp)
             try:
                 res = res['mods']['shoplist']['data']['shopItems']
@@ -180,6 +185,8 @@ def main_GetShopList(threadCount=50):
             writer.add_title_data()
             print(u'第 %s 个文件已输出，请检查数据！' % count)
             count += 1
+            time.sleep(10)
+        else:break
 
     # 输出最后一个文件
     result = []
