@@ -201,5 +201,5 @@ for item in t[:100]:
     print(item)
 
 from ms_spider_fw.DBSerivce import DBService
-dbs=DBService(dbName='b2c_base',tableName='proxy_ok')
-t=dbs.get_data_rand(var='proxy_port')
+dbs=DBService(dbName='b2c_base',tableName='proxy_xi_ci_dai_li')
+t=dbs.getData(var='proxy_port',distinct=True)

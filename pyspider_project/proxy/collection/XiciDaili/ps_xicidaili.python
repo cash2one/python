@@ -38,12 +38,14 @@ class Handler(BaseHandler):
         self.crawl(url_start, callback=self.step_first, fetch_type='js',
                    js_script="""function(){windows.scrollTo(0,document.body.scrollHeight);}""")
 
-    @config(age=2 * 24 * 60 * 60)
+    @config(age=0.5 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
-        self.my_result(response)
+        # start project
+        # self.on_result(response)
         for t in d('.pagination>a').items():
-            self.crawl(t.attr.href, callback=self.step_first)
+            # self.crawl(t.attr.href, callback=self.step_first)
+            self.crawl(t.attr.href, callback=self.my_result)
 
     def my_result(self, response):
         t = response.text
@@ -52,8 +54,8 @@ class Handler(BaseHandler):
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return map(lambda x: [x, crawl_time], re.findall(ip_patt, res))
 
-    # over ride method for result store to mysql
     def on_result(self, result):
+        # result=self.my_result(response)
         if result:
             db_server.data2DB(data=result)
         else:

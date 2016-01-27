@@ -75,9 +75,40 @@ class Handler(BaseHandler):
         for t in d('.view-ItemListItem>a').items():
             self.crawl(t.attr('href'), callback=self.detail_page)
 
+    def global_sale(self, response):
+        d = response.doc
+
+        def other_info():
+            return '|'.join(map(lambda t: t.text() + t.next().text(), d('.props.clearfix>li>b').items()))
+
+        return [
+            d('.title>h3').text(),
+            response.url,
+            d('.crumb a:nth-child(2)').text(),
+            d('.pink .price').text(),
+            d('.over-zhe').text(),
+            d('.market').text(),
+            d('.baoyou').text(),
+            d('.over-sendout').text(),
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            '-',
+            other_info(),
+            time.strftime('%Y-%m-%d %X', time.localtime())
+        ]
+
     def detail_page(self, response):
         # parser the product page and collect the product_info
         d = response.doc
+        if u'【全球购】' in d('title').text():
+            return self.global_sale(response)
         # beibei self_support does not given score
         try:
             score = d('.eva-con>p>span').text().split(' ')

@@ -1,7 +1,9 @@
 # coding:utf-8
 __author__ = 'Administrator'
 
-import csv, os, MyCsv, time
+import csv
+import os
+import MyCsv
 
 
 def all_to_one(path):
@@ -32,6 +34,7 @@ def all_to_one(path):
     writer = MyCsv.Write_Csv(path=path, name='Total', title=title[0], result=result)
     writer.add_title_data()
 
+
 def all_to_one_Distinct(path):
     d = {}
     title = []
@@ -52,11 +55,13 @@ def all_to_one_Distinct(path):
     writer = MyCsv.Write_Csv(path=path, name='Total_Distinct', title=title, result=result)
     writer.add_title_data()
 
+
 def one_to_N(fileName):
-    with open(fileName,'r') as f:
-        reader=csv.reader(f)
+    with open(fileName, 'r') as f:
+        reader = csv.reader(f)
         for row in reader:
             print(row)
+
 
 if __name__ == '__main__':
     # t = time.time()

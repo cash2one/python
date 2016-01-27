@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/1/27 14:25
+# Project:kjson_proxy_spider
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+from PIL import Image
+import base64
+import cStringIO
+import pytesseract
+import cv2
+import numpy
+
+# config_text
+# when start a spider,you should modify the next config text first
+
+db_name = 'b2c_base'  # database name for store data , string
+table_name = 'proxy_kjson'  # table name for store data , string
+table_title = 'proxy_port,crawl_time'  # table title for store data , should be string separated by ','
+url_start = 'http://www.kjson.com/proxy/'  # start url for crawl,string
+# connect string , usually no need to modify
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+
+# now,the next is spider script
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+
+
+# if create table for store result in mysql , no need to be changed
+# if not db_server.isTableExist():
+#     db_server.createTable(tableTitle=table_title.split(','))
+
+def gen_port(x):
+    t = cStringIO.StringIO(base64.decodestring(x))
+    image = Image.open(t)
+
+    t=numpy.asarray(image)
+    # t=cv2
+    gray=cv2.cvtColor(t,cv2.COLOR_BGR2GRAY)
+    ima,retval=cv2.threshold(gray,40,255,cv2.THRESH_BINARY)
+    retval=cv2.resize(retval,(300,400))
+    # cv2.imshow('preview',retval)
+    # cv2.waitKey()
+    tt=cStringIO.StringIO()
+    cv2.imwrite(tt,retval)
+    tmp = pytesseract.image_to_string(retval)
+    return ''.join(map(lambda x: '8' if x == '5' else x, tmp))
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl(url_start, callback=self.step_first)
+
+    @config(age=2 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        for t in d('.page>a').items():
+            self.crawl(t.attr.href, callback=self.my_result)
+
+    @config(priority=2)
+    def my_result(self, response):
+        d = response.doc
+        res = []
+        for t in d('.gradeA>td:nth-child(1)').items():
+            proxy = t.text()
+            port_base64 = t.next()('img').attr('src').split('base64,')[1]
+            port = gen_port(port_base64)
+            p_p = proxy + ':' + port
+            res.append(p_p)
+            print(p_p)
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return map(lambda x: [x, crawl_time], res)
+
+        # over ride method for result store to mysql
+        # def on_result(self, result):
+        #     if result:
+        #         db_server.data2DB(data=result)
+        #     else:
+        #         print u'result-->return None'
