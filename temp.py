@@ -203,3 +203,6 @@ for item in t[:100]:
 from ms_spider_fw.DBSerivce import DBService
 dbs=DBService(dbName='b2c_base',tableName='proxy_xi_ci_dai_li')
 t=dbs.getData(var='proxy_port',distinct=True)
+
+# for jiuxian website_spider to extract info
+pat=re.compile('_BFD\.BFD_INFO = \{(.+?)\};',re.DOTALL)

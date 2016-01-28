@@ -35,18 +35,19 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 def gen_port(x):
     t = cStringIO.StringIO(base64.decodestring(x))
     image = Image.open(t)
-
-    t=numpy.asarray(image)
-    # t=cv2
-    gray=cv2.cvtColor(t,cv2.COLOR_BGR2GRAY)
-    ima,retval=cv2.threshold(gray,40,255,cv2.THRESH_BINARY)
-    retval=cv2.resize(retval,(300,400))
-    # cv2.imshow('preview',retval)
-    # cv2.waitKey()
-    tt=cStringIO.StringIO()
-    cv2.imwrite(tt,retval)
-    tmp = pytesseract.image_to_string(retval)
-    return ''.join(map(lambda x: '8' if x == '5' else x, tmp))
+    t = numpy.asarray(image)
+    # 转换灰度图
+    gray = cv2.cvtColor(t, cv2.COLOR_BGR2GRAY)
+    # 二值化
+    thd, image_b = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    c, r = image_b.shape
+    image_b = cv2.resize(image_b, (r * 2, c * 2))
+    flag, image_a = cv2.imencode('.jpeg', image_b)
+    if flag:
+        image_ok = Image.open(cStringIO.StringIO(image_a.tostring()))
+        return pytesseract.image_to_string(image_ok)
+    else:
+        return None
 
 
 class Handler(BaseHandler):
