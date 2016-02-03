@@ -157,7 +157,6 @@ ff = f_1 + f_2 + f_3
 
 f = MyCsv.Write_Csv('d:/', 'brand_list.csv', title=['brand', 'detail', u'catalogue'], result=ff)
 
-
 # rebuild on 2016/01/18
 # tmall shop_search page parser
 import re, json
@@ -192,17 +191,71 @@ for item in res:
     for item in Result:
         print item
 
+with open('D:\spider\tmall\2016-01-18\shopInfo_2016-01-18 19_11_25.csv', 'r')as f:
+    t = f.readlines()
 
-with open('D:\spider\tmall\2016-01-18\shopInfo_2016-01-18 19_11_25.csv','r')as f:
-    t=f.readlines()
-
-t=map(lambda x:x.split(','),t)
+t = map(lambda x: x.split(','), t)
 for item in t[:100]:
     print(item)
 
 from ms_spider_fw.DBSerivce import DBService
-dbs=DBService(dbName='b2c_base',tableName='proxy_xi_ci_dai_li')
-t=dbs.getData(var='proxy_port',distinct=True)
+
+dbs = DBService(dbName='b2c_base', tableName='proxy_xi_ci_dai_li')
+t = dbs.getData(var='proxy_port', distinct=True)
 
 # for jiuxian website_spider to extract info
-pat=re.compile('_BFD\.BFD_INFO = \{(.+?)\};',re.DOTALL)
+pat = re.compile('_BFD\.BFD_INFO = \{(.+?)\};', re.DOTALL)
+
+import logging
+import os
+
+logging.basicConfig(filename=os.path.join(os.getcwd(), 'log.txt'), level=logging.DEBUG)
+logging.debug('this is a message.')
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+for item in tt:
+    print '*' * 50
+    for item in json.loads(item).items():
+        try:
+            print item[1].encode('utf8')
+        except:
+            print item[1]
+
+# !/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on 2016-02-03 17:00:44
+# Project: test_02
+
+from pyspider.libs.base_handler import *
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+    }
+
+    def on_message(self, project, msg):
+        return filter(lambda x: 1 if x[0] == project else 0, self._messages)
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        url = self.on_message('yhd_product_url', 'data:')
+        print url
+        self.crawl('www.baidu.com', callback=self.index_page)
+
+    @config(age=10 * 24 * 60 * 60)
+    def index_page(self, response):
+        for each in response.doc('a[href^="http"]').items():
+            url = self.on_message('yhd_product_url', 'data:')
+            print url
+            self.crawl(each.attr.href, callback=self.detail_page)
+
+    @config(priority=2)
+    def detail_page(self, response):
+        return {
+            "url": response.url,
+            "title": response.doc('title').text(),
+        }

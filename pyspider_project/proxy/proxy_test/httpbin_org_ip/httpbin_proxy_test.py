@@ -10,6 +10,12 @@ import requests
 import json
 import re
 import threading
+import logging
+
+
+FORMAT = '%(asctime)s:[%(IP)s--%(user)-8s]%(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 qu_proxy_test = qu(0)
 qu_proxy_ok = qu(0)
@@ -53,10 +59,7 @@ def test():
                 and len(res.text) < 100:
             qu_proxy_ok.put(proxy)
             # for test
-            print('%s is okay.' % proxy)
-            print res.text
-            print '=' * 50
-            print qu_proxy_test.qsize(),qu_proxy_ok.qsize()
+            logger.debug(proxy)
 
 
 def muti_thread_test(n):

@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/2/3 16:32
+# Project:yhd_price_stock_spider
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+
+# config_text
+
+db_name = 'platform_data'
+table_name = 'yhd_price_stock_info'
+table_title = 'url,product_url,product_price_stock_info,crawl_time'
+url_start = 'http://www.yhd.com/marketing/allproduct.html?' \
+            'tp=2092.0.153.0.1.LAaSxkk-00-33^eM'
+# connect string , usually no need to modify
+connect_dict = {'host': '10.118.187.12', 'user': 'admin',
+                'passwd': 'admin', 'charset': 'utf8'}
+
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+# if create table for store result in mysql , no need to be changed
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
+                          'Gecko/20100101 Firefox/4.0.1'
+        }
+    }
+
+    # def on_message(self, project, msg):
+    #     temp = filter(lambda x: 1 if x[0] == project else 0, self._messages)
+    #     for item in temp:
+    #         self._messages.remove(item)
+    #     return map(lambda x: x[1].get(msg), temp)
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl(url_start, callback=self.step_first, retries=100)
+
+    @config(age=2 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        for t in d('.fore>dd>em>span>a').items():
+            self.crawl(t.attr.href, callback=self.step_second, retries=100)
+
+    @config(age=5 * 24 * 60 * 60)
+    def step_second(self, response):
+        d = response.doc
+        url_s = 'http://gps.yhd.com/restful/detail?mcsite=1&provinceId=20&pmId='
+        urls = map(lambda x: [url_s + x.attr('pmid'), x.attr('href')],
+                   d('.proName>a:nth-child(1)').items())
+        for url in urls:
+            save = {'product_url': url[1]}
+            # self.send_message('yhd_product_url', {'product_url':url[1]})
+            self.crawl(url[0], callback=self.my_result, save=save, retries=100)
+        for t in d('.turn_page a').items():
+            self.crawl(t.attr.href, callback=self.step_second, retries=100)
+
+    @config(priority=2)
+    def my_result(self, response):
+        product_url = response.save['product_url']
+        json_file = response.text
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            response.url,
+            product_url,
+            json_file,
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'

@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/2/2 11:13
+# Project:vip_spider
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+import requests as req
+import re
+import json
+
+
+def start_urls():
+    url = 'http://act.vip.com/18948.html'
+    url_s = 'http://category.vip.com/search-1-0-1.html'
+    res = req.get(url).content
+    pat = re.compile('\{\"name.+?\}')
+    urls_par = re.findall(pat, res)
+    urls_ok = map(lambda x: x if '"hot"' in x else x.replace('hot', '"hot"'),
+                  filter(lambda x: 1 if 'imgs' not in x else 0, urls_par))
+    return map(lambda x: url_s + json.loads(x)['cids'], urls_ok)
+
+
+def product_url(response):
+    url_s = 'http://www.vip.com/detail-'
+    txt = response.text
+    data_ok = map(lambda x: x + '}', re.findall(pat_par, txt)[0].split('},'))
+    data_ok[-1] = data_ok[-1][:-1]
+    if not data_ok:
+        return None
+    else:
+        return map(lambda x: url_s + str(json.loads(x)['brand_id']) + '-' +
+                             str(json.loads(x)['id']) + '.html',
+                   data_ok)
+
+
+# config_text
+db_name = 'industry_data__clothes_shoes'  # database name for store data , string
+table_name = 'vip'  # table name for store data , string
+table_title = 'url,catalogue,product_title,size_list,product_par_json,' \
+              'start_time,end_time,product_id_price_json,' \
+              'warehouse_warmup_json,sku_list,crawl_time'
+url_start = start_urls()
+# connect string , usually no need to modify
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin',
+                'charset': 'utf8'}
+
+# script
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+# re module compile
+pat_par = re.compile('data : \[(.+?)\]')
+pat_viewed = re.compile('var O_viewed = (.+?);', re.DOTALL)
+pat_query = re.compile('I_query = (.+?);')
+pat_start_time = re.compile('start_time(.+?),')
+pat_end_time = re.compile('end_time(.+?),')
+pat_skulist = re.compile('skuList = (.+?);')
+pat_warehouse = re.compile('In_warehouse = (.+?);')
+pat_pagetype = re.compile('var Page_type = (\d+);')
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
+                          'Gecko/20100101 Firefox/4.0.1'
+        }
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        self.crawl(url_start, callback=self.step_first, retries=100)
+
+    @config(age=3 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        cat = d('.f-left.J_mq_cnt>a').text().replace(u'商品分类 ', '')
+        p_urls = product_url(response)
+        for t in d('.cat-inf-name>a').items():
+            self.crawl(t.attr.href, callback=self.my_result,
+                       save={"cat": cat}, retries=100)
+        if p_urls:
+            self.crawl(p_urls, callback=self.my_result,
+                       save={"cat": cat}, retries=100)
+        for t in d('.cat-paging-nub').items():
+            self.crawl(t.attr.href, callback=self.step_first, retries=100)
+
+    @config(priority=2)
+    def my_result(self, response):
+        def handler_product_id_price_so_on(res_t):
+            t = re.findall(pat_viewed, res_t)
+            if t:
+                return re.sub('\s+', '', t[0]).replace("'", '"')
+            return None
+
+        def handler_warehouse_warmup_so_on(res_t):
+            t1 = re.findall(pat_warehouse, res_t)[0]
+            t2 = re.findall(pat_pagetype, res_t)[0]
+            if t1 and t2:
+                return json.dumps({'warehouse': t1, 'pagetype': t2})
+            return None
+
+        def handler_time(pat, res_t):
+            t = re.findall(pat, res_t)
+            if t:
+                return t[0].replace(':', '').strip()
+            return None
+
+        d = response.doc
+        res = response.text
+        catalogue = response.save['cat']
+        product_info_json = handler_product_id_price_so_on(res)
+        warehouse_warmup_json = handler_warehouse_warmup_so_on(res)
+        start_time = handler_time(pat_start_time, res)
+        end_time = handler_time(pat_end_time, res)
+        sku_list = re.findall(pat_skulist, res)[0]
+        size_list = d('.size-list li span:nth-child(1)').text()
+        title = d('.pib-title-detail').text()
+        temp_dic = {}
+        for item in d('.dc-table-tit').items():
+            temp_dic[item.text()[:-1]] = item.next().text()
+        product_par_json = json.dumps(temp_dic)
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            response.url,
+            catalogue,
+            title,
+            size_list,
+            product_par_json,
+            start_time,
+            end_time,
+            product_info_json,
+            warehouse_warmup_json,
+            sku_list,
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'
