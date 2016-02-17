@@ -259,3 +259,5 @@ class Handler(BaseHandler):
             "url": response.url,
             "title": response.doc('title').text(),
         }
+
+t=requests.post(url='http://www.jiuxian.com/pro/selectProActByProId.htm?t=1455698064208',data={'proId':2790,'resId':6})

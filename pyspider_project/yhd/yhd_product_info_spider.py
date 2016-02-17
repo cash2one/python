@@ -8,12 +8,13 @@ from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
 import time
 import re
+import json
 
 # config_text
 
 db_name = 'platform_data'
 table_name = 'yhd_product_info'
-table_title = ',crawl_time'
+table_title = 'url,category,product_name,product_par,sold,seller,seller_href,dsr,hidden_value,crawl_time'
 url_start = 'http://www.yhd.com/marketing/allproduct.html?' \
             'tp=2092.0.153.0.1.LAaSxkk-00-33^eM'
 # connect string , usually no need to modify
@@ -26,6 +27,7 @@ if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 
 pat_value = re.compile('input type=\"hidden\" autocomplete=\"off\" id=\"(.+?)\"\s{1,2}value=\"(.+?)\".*?>')
+pat_par = re.compile('<dd title=\".*?>(.*?)</dd>')
 
 
 class Handler(BaseHandler):
@@ -47,7 +49,7 @@ class Handler(BaseHandler):
         for t in d('.fore>dd>em>span>a').items():
             self.crawl(t.attr.href, callback=self.step_second, retries=100)
 
-    @config(age=5 * 24 * 60 * 60)
+    @config(age=10 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         for t in d('.proName>a:nth-child(1)').items():
@@ -58,22 +60,28 @@ class Handler(BaseHandler):
     @config(priority=2)
     def my_result(self, response):
         txt = response.text
-        d=response.doc
+        d = response.doc
         hidden_value = re.findall(pat_value, txt)
-        hidden_value_handler = reduce(
-                lambda x, y: x + ',' + '"' + y[0] + '"' + ':' + '"' + y[1] + '"' if isinstance(x, str) else
-                '"' + x[0] + '"' + ':' + '"' + x[1] + '"' + ',' + '"' + y[0] + '"' + ':' + '"' + y[1] + '"',
-                hidden_value)
-        hidden_value = '{' + hidden_value_handler + '}'
-        category=d('.mod_detail_crumb.clearfix a').text()
-        product_name=d('#productMainName').text()
-        sold_num=d('#mod_salesvolume>strong').text()
-        seller=d('.shop_name>a:nth-child(1)').text()
-        seller_href=d('.shop_name>a:nth-child(1)').attr('href')
-        # TODO
+        hidden_value = json.dumps(hidden_value)
+        category = d('.mod_detail_crumb.clearfix a').text()
+        product_name = d('#productMainName').text()
+        sold_num = d('#mod_salesvolume>strong').text()
+        seller = d('.shop_name>a:nth-child(1)').text()
+        seller_href = d('.shop_name>a:nth-child(1)').attr('href')
+        seller_dsr = d('.inshopInf_sd li').text()
+        product_par = re.findall(pat_par, txt)
+        product_par = json.dumps(product_par) if product_par else ''
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return [
             response.url,
+            category.split(seller)[0] if seller else category,
+            product_name,
+            product_par,
+            sold_num,
+            seller,
+            seller_href,
+            seller_dsr.replace(u' ◆ ', ''),
+            hidden_value,
             crawl_time
         ]
 
