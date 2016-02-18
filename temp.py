@@ -261,3 +261,12 @@ class Handler(BaseHandler):
         }
 
 t=requests.post(url='http://www.jiuxian.com/pro/selectProActByProId.htm?t=1455698064208',data={'proId':2790,'resId':6})
+
+
+# dangdang relation
+def extract_info(url):
+    import requests as req
+    from pyquery.pyquery import PyQuery as pq
+    print url+'/relation.html'
+    d = pq(req.get(url+'/relation.html').content)
+    return d('.contact>p').text().encode('utf8', 'ignore')

@@ -26,11 +26,16 @@ if not db_server.isTableExist():
 
 class Handler(BaseHandler):
     crawl_config = {
+        'proxy': '10.10.10.10:80',
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
+                          'Gecko/20100101 Firefox/4.0.1'
+        }
     }
 
     @every(minutes=24 * 60)
     def on_start(self):
-        self.crawl(url_start, callback=self.step_first)
+        self.crawl(url_start, callback=self.step_first, retries=100)
 
     @config(age=2 * 24 * 60 * 60)
     def step_first(self, response):
@@ -39,13 +44,13 @@ class Handler(BaseHandler):
             if not t.attr('class'):
                 u = t.attr.href
                 if not 'cp' in u:  # filter books_page link
-                    self.crawl(u, callback=self.step_second)
+                    self.crawl(u, callback=self.step_second, retries=100)
 
     @config(age=10 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         for t in d('.inner .name>a').items():
-            self.crawl(t.attr.href, callback=self.my_result)
+            self.crawl(t.attr.href, callback=self.my_result, retries=100)
 
         c = d('.page>span:nth-child(3)').text()
         if c:
@@ -56,7 +61,7 @@ class Handler(BaseHandler):
             for item in url_list:
                 print item
             for t in url_list:
-                self.crawl(t, callback=self.step_second)
+                self.crawl(t, callback=self.step_second, retries=100)
 
     @config(priority=2)
     def my_result(self, response):
