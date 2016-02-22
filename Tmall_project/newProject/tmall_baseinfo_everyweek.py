@@ -12,7 +12,7 @@ import numpy as np
 
 # config text:
 # crawled_date should be modified before use
-spider_time = datetime.date(2016, 2, 19)
+spider_time = datetime.date(2016, 2, 22)
 spider_week = spider_time.strftime('%U')
 
 
