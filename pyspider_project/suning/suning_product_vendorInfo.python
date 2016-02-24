@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/2/24 18:29
+# Project:suning_product_vendorInfo
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+from Queue import Queue
+import re
+import json
+
+# save message from suning_product_salestatus
+queue_vendorInfo = Queue(0)
+
+# config_text
+db_name = 'platform_data'
+table_name = 'suning_product_vendorInfo'
+table_title = 'original_url,vendor_info,crawl_time'
+# connect string , usually no need to modify
+connect_dict = \
+    {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+
+# now,the next is spider script
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+# re compiler
+pat_score_detail = re.compile('shopScoreHtml\((.+)\);', re.DOTALL)
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+        'headers': {
+            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
+                          'Gecko/20100101 Firefox/4.0.1'
+        }
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        while True:
+            if not queue_vendorInfo.qsize():
+                time.sleep(5)
+                continue
+            else:
+                template = queue_vendorInfo.get()
+            vendor_id = template['vendor_id']
+            original_url = template['original_url']
+            url_t = 'http://product.suning.com/pds-web/ajax/vendorInfo_' \
+                    + vendor_id + '.html'
+            self.crawl(url_t, callback=self.crawl_score, retries=100,
+                       save={
+                           'original_url': original_url,
+                           'vendor_id': vendor_id
+                       })
+
+    def crawl_score(self, response):
+        data_t = response.save
+        vendor_info = {'vendor_info': response.text}
+        data_a = dict(data_t.items() + vendor_info.items())
+        url_t = 'http://review.suning.com/ajax/getShopScore/' + data_t['vendor_id'] \
+                + '-gMain.shopScoreHtml.htm'
+        self.crawl(url_t, callback=self.my_result, retries=100, save=data_a)
+
+    @config(priority=2)
+    def my_result(self, response):
+        template = response.save
+        original_url = template['original_url']
+        shop_score = {'score_detail': re.findall(pat_score_detail, response.text)[0]}
+        detail = dict(template.items() + shop_score.items())
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            original_url,
+            json.dumps(detail),
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'
+
+    # overide method for store message
+    def on_message(self, project, msg):
+        queue_vendorInfo.put(msg)

@@ -7,13 +7,19 @@
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
 import time
+import json
+import re
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 # config_text
 # when start a spider,you should modify the next config text first
 
 db_name = 'platform_data'  # database name for store data , string
-table_name = 'jd_product_info'  # table name for store data , string
-table_title = ',crawl_time'  # table title for store data , should be string separated by ','
+table_name = 'jd_product_detail'  # table name for store data , string
+table_title = 'url,product_detail,crawl_time'  # table title for store data , should be string separated by ','
 url_start = 'http://www.jd.com/allSort.aspx'  # start url for crawl,string
 # connect string , usually no need to modify
 connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
@@ -23,6 +29,13 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 # if create table for store result in mysql , no need to be changed
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
+
+# re compiler
+pat_page_config = re.compile('pageConfig = (.+?);', re.DOTALL)
+pat_word = re.compile('\w+:')
+pat_score = re.compile('<span class="score-desc">(.+?)<.+?"number">(.+?)<.+?<'
+                       'i class="(\w+?)">.+?"percent">(.+?)<', re.DOTALL)
+pat_par = re.compile('<li title=.+?>(.+?)</li>')
 
 
 class Handler(BaseHandler):
@@ -43,6 +56,7 @@ class Handler(BaseHandler):
         for t in d('.clearfix>dd>a').items():
             self.crawl(t.attr.href, callback=self.step_second, retries=100)
 
+    @config(age=15 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
         for t in d('.gl-i-wrap.j-sku-item .p-name a').items():
@@ -53,10 +67,66 @@ class Handler(BaseHandler):
     @config(priority=2)
     def my_result(self, response):
         d = response.doc
+        url = response.url
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
-        txt=response.text
-        print txt
-        return [d('title').text()]
+        txt = response.text
+
+        data_temp = re.findall(pat_page_config, txt)[0]
+        data = re.sub('\s+', '', data_temp)
+        data = data.replace("'", '"')
+        data_sub = re.findall(pat_word, data)
+        for w in data_sub:
+            if w == 'http:':
+                continue
+            else:
+                temp = data.replace(w, '"' + w[:-1] + '"' + ':')
+                data = temp
+        data = json.loads(data)
+
+        temp = list(d('.breadcrumb a').items())[:-1]
+        # cate = {temp.index(t): t.text() for t in temp}
+        cate = {}
+        for t in temp:
+            cate['category_' + str(temp.index(t))] = t.text()
+
+        temp = list(d('.lh>li img').items())
+        # img_src = {temp.index(t): t.attr('src') for t in temp}
+        img_src = {}
+        for t in temp:
+            img_src['image_' + str(temp.index(t))] = t.attr('src')
+
+        temp = list(d('.label+.text').items())
+        template = {0: 'com_name', 1: 'addr'}
+        # com_info = {template[temp.index(t)]: t.text() for t in temp}
+        com_info = {}
+        for t in temp:
+            com_info[template[temp.index(t)]] = t.text()
+        shop_info = {'shop_name': d('.name').attr('title'), 'shop_href': d('.name').attr('href')}
+        shop = dict(com_info.items() + shop_info.items())
+
+        score_total = {'score_sum': d('.score-sum a').text()}
+        score_detail_t = re.findall(pat_score, txt)
+        # score_detail = {t[0]: {'score': t[1], 'up_down': t[2], 'rate': t[3]} for t in score_detail if len(t) == 4}
+        score_detail = {}
+        for t in score_detail_t:
+            if len(t) == 4:
+                score_detail[t[0]] = {'score': t[1], 'up_down': t[2], 'rate': t[3]}
+        score = dict(score_total.items() + score_detail.items())
+
+        product_parameters_t = re.findall(pat_par, txt)
+        # product_parameters = {t.split('：', 1)[0]: t.split('：', 1)[1] for t in product_parameters_t}
+        product_parameters = {}
+        for t in product_parameters_t:
+            product_parameters[t.split('：', 1)[0]] = t.split('：', 1)[1]
+
+        detail = {'catagory': cate, 'image_src': img_src, 'shop_com_information': shop, 'score_detail': score,
+                  'product_parameters': product_parameters, 'base_info': data}
+
+        return [
+            url,
+            json.dumps(detail),
+            crawl_time
+        ]
 
     # over ride method for result store to mysql
     def on_result(self, result):
