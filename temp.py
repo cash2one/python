@@ -270,3 +270,41 @@ def extract_info(url):
     print url+'/relation.html'
     d = pq(req.get(url+'/relation.html').content)
     return d('.contact>p').text().encode('utf8', 'ignore')
+
+import pandas
+import pymysql
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+conn=pymysql.connect(**connect_dict)
+sql='select seller,category,seller_href,sold from platform_data.yhd_product_info'
+data_fw=pandas.read_sql(sql,con=conn)
+data_fw['sold_int']=data_fw['sold'].apply(lambda x:int(x) if x.isdigit() else 0)
+data_fw=data_fw.drop(['sold'],axis=1)
+data_fw=data_fw.drop(data_fw['seller'].apply(lambda x:True if x==None else False),axis=0)
+# data_fw_t=data_fw.sort_values(by='sold_int',ascending=False)
+df1=data_fw.groupby(['seller','seller_href']).sum()
+
+
+sql_data='select * from platform_data.dangdang_relation'
+df=pandas.read_sql(sql,con=conn)
+import re
+pat_tel=re.compile('\d{3,4}-\d{7,8}')
+pat_mob=re.compile('1\d{10}')
+pat_addr=re.compile(u'地\s*?址\s*?[:：]\s*?.+?\s',re.DOTALL)
+pat_email=re.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}")
+pat_qq=re.compile(u'QQ[:：]\s*?\d+\s*?|qq[:：]\s*?\d+\s*?|微信[:：]\s*?\d+\s*?',re.DOTALL)
+def match_tel(x):
+    if x:
+        try:
+            t=re.findall(pat_email,x)[0]
+            if t:# and t[0]<>t[1]:
+                return t
+            else:return ''
+        except:return ''
+    else:return ''
+df['email']=df['relation'].apply(match_tel)
+
+t=u""""地址
+：北京市海淀区中关村大街22号A座802室 客服热线
+：010-62682395（9:00—18:00）周日休息。节假日除外。 客服QQ?
+：xdy860712@163.com"
+"""

@@ -10,9 +10,6 @@ import time
 from Queue import Queue
 import re
 
-# save message from suning_product_detail
-queue_passPartNumber = Queue(0)
-
 # config_text
 db_name = 'platform_data'
 table_name = 'suning_product_salestatus'
@@ -32,6 +29,8 @@ pat_vendor = re.compile('"vendor":"(.+?)",')
 
 
 class Handler(BaseHandler):
+    # save message from suning_product_detail
+    queue_passPartNumber = []
     crawl_config = {
         'proxy': '10.10.10.10:80',
         'headers': {
@@ -43,13 +42,16 @@ class Handler(BaseHandler):
     @every(minutes=24 * 60)
     def on_start(self):
         while True:
-            if not queue_passPartNumber.qsize():
-                time.sleep(5)
-                continue
-            else:
-                template = queue_passPartNumber.get()
-            passPartNumber = template['passPartNumber']
-            original_url = template['original_url']
+            passPartNumber=self.on_message(self.project_name,msg='passPartNumber')
+            original_url=self.on_message(self.project_name,msg='original_url')
+            # if len(self._messages)==0:
+            #     time.sleep(10)
+            #     continue
+            # else:
+            #     template=self._messages.pop()
+            #     print template
+            # passPartNumber = template['passPartNumber']
+            # original_url = template['original_url']
             url_t = 'http://icps.suning.com/icps-web/getAllPriceFourPage/' + passPartNumber + \
                     '__755_7550101_1_pc_showSaleStatus.vhtm'
             self.crawl(url_t, callback=self.my_result, retries=100,
@@ -62,10 +64,10 @@ class Handler(BaseHandler):
         sale_status = re.findall(pat_salestatus, text)[0]
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         vendor_id = re.findall(pat_vendor, text)[0]
-        self.send_message('suning_product_vendorInfo', {
-            'vendor_id': vendor_id,
-            'original_url': original_url
-        }, url="%s#%s" % ('distinc', vendor_id))
+        # self.send_message('suning_product_vendorInfo', {
+        #     'vendor_id': vendor_id,
+        #     'original_url': original_url
+        # }, url="%s#%s" % ('distinc', vendor_id))
         return [
             original_url,
             sale_status,
@@ -79,6 +81,6 @@ class Handler(BaseHandler):
         else:
             print u'result-->return None'
 
-    # overide method for store message
+    # # overide method for store message
     def on_message(self, project, msg):
-        queue_passPartNumber.put(msg)
+        return msg

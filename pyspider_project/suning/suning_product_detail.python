@@ -24,12 +24,14 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 
-pat_passPartNumber = re.compile('partNumber":"(\d+?)\",')
+# re pattern compile
+pat_passPartNumber = re.compile('catentries/(\d+?)_\d+')
 pat_extract_salestaus = re.compile('showSaleStatus\((.+)\);', re.DOTALL)
-
-# re compiler
 pat_src = re.compile('src-large="(.+?)"')
 pat_parameters = re.compile('name-inner.*?span>(.+?)<.+?"val">(.+?)</td>', re.DOTALL)
+pat_salestatus = re.compile('showSaleStatus\((.+)\);', re.DOTALL)
+pat_vendor = re.compile('"vendor":"(.+?)",')
+pat_score_detail = re.compile('shopScoreHtml\((.+)\)', re.DOTALL)
 
 
 class Handler(BaseHandler):
@@ -54,59 +56,103 @@ class Handler(BaseHandler):
             cate = {'category_name': t.text(), 'category_id': id_t}
             url = 'http://list.suning.com/emall/showProductList.do?ci=' + id_t + \
                   '&pg=03&cp=0&il=0&iy=0&n=1&cityId=9051'
-            self.crawl(url, callback=self.step_second, save=cate, retries=100)
+            url_refer = 'http://list.suning.com/0-' + id_t + '-0.html'
+            self.crawl(url, callback=self.step_second, save=cate, retries=100, timeout=60,
+                       headers={
+                           'Referer': url_refer,
+                           'User-Agent': 'User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)'
+                       })
 
     @config(age=5 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
-        page_sum = int(d('#pageLast').text())
+        page_n_str = d('#pageLast').text()
+        page_sum = int(page_n_str) if page_n_str else 1
         id_t = response.save['category_id']
         url_s = 'http://list.suning.com/emall/showProductList.do?ci='
         url_m = '&pg=03&cp='
         url_e = '&il=0&iy=0&n=1&cityId=9051'
         urls = map(lambda x: url_s + id_t + url_m + str(x) + url_e, range(page_sum))
+        url_refer = 'http://list.suning.com/0-' + id_t + '-0.html'
         for url in urls:
-            self.crawl(url, callback=self.step_third, save=response.save, retries=100)
+            self.crawl(url, callback=self.step_third, save=response.save, retries=100, timeout=60,
+                       headers={
+                           'Referer': url_refer,
+                           'User-Agent': 'User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)'
+                       })
 
     @config(age=15 * 24 * 60 * 60)
     def step_third(self, response):
         d = response.doc
         urls = [t('.i-name .sellPoint').attr('href') for t in d('.wrap').items()]
         for url in urls:
-            self.crawl(url, callback=self.my_result, retries=100)
+            self.crawl(url, callback=self.step_fourth, save=response.save, retries=100)
 
-    @config(priority=2)
-    def my_result(self, response):
+    @config(age=15 * 24 * 60 * 60)
+    def step_fourth(self, response):
         d = response.doc
         url = response.url
         txt = response.text
         passPartNumber = re.findall(pat_passPartNumber, txt)[0]
-        # send message to suning_product_salestatus project
-        self.send_message('suning_product_salestatus', {
-            "passPartNumber": passPartNumber,
-            "original_url": url
-        }, url="%s#%s" % ('distinc', passPartNumber))
-
+        cate = response.save
         temp = list(set(re.findall(pat_src, txt)))
         src_href = dict(zip(range(len(temp)), temp))
         # noinspection PyTypeChecker
-        detail = {
-            'product_title': d('#productDisplayName').text(),
+        detail_t = {
+            'product_title': d('#productName').attr('title'),
             'src_href': src_href,
             'product_parameters': dict(re.findall(pat_parameters, txt)),
+            'category': response.save,
             'message': {
                 "passPartNumber": passPartNumber,
                 "original_url": url
             }
         }
+        url_t = 'http://icps.suning.com/icps-web/getAllPriceFourPage/' + passPartNumber + \
+                '__755_7550101_1_pc_showSaleStatus.vhtm'
+        self.crawl(url_t, callback=self.step_fifth, retries=100,
+                   save={
+                       'base': json.dumps(detail_t),
+                       'orig_url': url,
+                       'category': cate
+                   })
+
+    @config(priority=2)
+    def step_fifth(self, response):
+        text = response.text
+        s = response.save
+        s['base'] = json.loads(s['base'])
+        sale_status = json.loads(re.findall(pat_salestatus, text)[0])
+        vendor_id = re.findall(pat_vendor, text)[0]
+        t = {'sale_status': sale_status, 'vendor_id': vendor_id}
+        data = dict(t.items() + s.items())
+        url_t = 'http://product.suning.com/pds-web/ajax/vendorInfo_' \
+                + vendor_id + '.html'
+        self.crawl(url_t, callback=self.step_sixth, retries=100, save=json.dumps(data))
+
+    @config(priority=3)
+    def step_sixth(self, response):
+        data_t = json.loads(response.save)
+        vendor_info = {'vendor_info': json.loads(response.text)}
+        data = dict(data_t.items() + vendor_info.items())
+        url_t = 'http://review.suning.com/ajax/getShopScore/' + data_t['vendor_id'] \
+                + '-gMain.shopScoreHtml.htm'
+        self.crawl(url_t, callback=self.my_result, retries=100, save=json.dumps(data))
+
+    # noinspection PyMethodMayBeStatic
+    def my_result(self, response):
+        template = json.loads(response.save)
+        original_url = template['orig_url']
+        shop_score = {'score_detail': json.loads(re.findall(pat_score_detail, response.text)[0])}
+        detail = dict(template.items() + shop_score.items())
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return [
-            url,
+            original_url,
             json.dumps(detail),
             crawl_time
         ]
 
-    # over ride method for result store to mysql
+    # override method for result store to mysql
     def on_result(self, result):
         if result:
             db_server.data2DB(data=result)
