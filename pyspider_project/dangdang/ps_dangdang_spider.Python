@@ -71,7 +71,7 @@ class Handler(BaseHandler):
             d('.head>h1').text(),  # product title
             d('#salePriceTag').text(),  # price
             d('#promo_price').attr('prpr'),  # promo price
-            d('#promo span').text().replace(u'店铺VIP 登录 后确认是否享有此优惠 ',''),  # promotion
+            d('#promo span').text().replace(u'店铺VIP 登录 后确认是否享有此优惠',''),  # promotion
             d('#comm_num_up>i').text(),  # recommend
             d('#comm_num_up>a>i').text(),  # comment count
             d('#delivery_address').attr('default_address'),  # delivery address
