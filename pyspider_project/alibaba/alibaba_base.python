@@ -8,6 +8,7 @@ from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
 import time
 import re
+import json
 
 # config_text
 # when start a spider,you should modify the next config text first
@@ -26,8 +27,10 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 #     db_server.createTable(tableTitle=table_title.split(','))
 
 # re pattern compile
-par_source_href=re.compile('"(http://s\.1688\.com/selloffer\S+?)"\.*?>(.+?)<')
-par_href_parameters=re.compile('"hidden" value="(\S+?)" name="(\S+?)"')
+par_source_href = re.compile('"(http://s\.1688\.com/selloffer\S+?)"\.*?>(.+?)<')
+par_href_parameters = re.compile('"hidden" value="(\S+?)" name="(\S+?)"')
+pat_ajax_url = re.compile(r'data-mod-config.+?"url":"(.+?)"')
+
 
 class Handler(BaseHandler):
     crawl_config = {
@@ -44,26 +47,35 @@ class Handler(BaseHandler):
     @config(age=2 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
-        cate_0=dict([(t.text(),'http:'+t.attr('href')) for t in d('#nav-sub .fd-clr a').items()])
+        cate_0 = dict([(t.text(), t.attr('href')) for t in d('#nav-sub .fd-clr a').items()])
         for t in cate_0.items():
-            self.crawl(t[1], callback=self.step_second,save={t[0],t[1]},retries=100)
+            self.crawl(t[1], callback=self.step_second, save={t[0], t[1]}, retries=100)
 
-    def step_second(self,response):
-        urls_t=dict(map(lambda x:(x[1],x[0]),re.findall(par_source_href,response.text)))
-        s=response.save
+    def step_second(self, response):
+        urls_t = dict(map(lambda x: (x[1], x[0]), re.findall(par_source_href, response.text)))
+        s = response.save
         for t in urls_t.items():
-            self.crawl(t[1],callback=self.step_third,save={'cate_0':s,'cate_1':t[0]},retries=100)
+            self.crawl(t[1], callback=self.step_third, save={'cate_0': s, 'cate_1': t[0]}, retries=100)
 
-    def step_third(self,response):
-        d=response.doc
-        par_s=re.findall(par_href_parameters,response.text)
+    def step_third(self, response):
+        d = response.doc
+        txt_t = response.text
+        txt = re.sub('\s', '', txt_t).replace('\\','')
+        # par_s=re.findall(par_href_parameters,response.text)
+        Ajax_url = re.findall(pat_ajax_url, txt)[0]
+        url_t = Ajax_url.replace('amp;', '')
+        url = url_t if url_t[:3] == 'http' else 'http:' + url_t
+        self.crawl(url, callback=self.step_third, retries=100)
+
 
 
     @config(priority=2)
     def my_result(self, response):
         d = response.doc
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
-        return []
+        return [
+            crawl_time
+        ]
 
     # over ride method for result store to mysql
     def on_result(self, result):

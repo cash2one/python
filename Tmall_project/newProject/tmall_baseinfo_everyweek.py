@@ -12,7 +12,7 @@ import numpy as np
 
 # config text:
 # crawled_date should be modified before use
-spider_time = datetime.date(2016, 2, 22)
+spider_time = datetime.date(2016, 2, 29)
 spider_week = spider_time.strftime('%U')
 
 
@@ -30,22 +30,20 @@ def temp_data(path):
     for i in range(1, fileListLen + 1):
         name_space.append(names['data' + '_' + str(i)])
     data_t = pandas.concat(name_space)
-    data = data_t.drop_duplicates(['href']).values.tolist()
+    data = data_t.drop_duplicates(['href'])
+    data = data.values.tolist()
     return [map(lambda x: '' if x is np.nan else x, t) for t in data], data_t.columns.tolist()
 
 
 def getData(path):
     data, titleNeedToHandle = temp_data(path)
     indexToHandleData = [0, 1, 14, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 20, 22, 23, 25, 26]
-    week = spider_week
-    dataOk = []
-    for item in data:
-        temp = []
-        for itemIndex in indexToHandleData:
-            temp.append(item[itemIndex])
-        temp.extend([week, spider_time])
-        dataOk.append(temp)
-    return dataOk
+
+    def temp_f(x):
+        return map(lambda i: x[i], indexToHandleData)
+
+    data_t = [temp_f(x) for x in data]
+    return map(lambda x: x + [spider_week, spider_time.__str__()], data_t)
 
 
 def putDataIntoDB(path):

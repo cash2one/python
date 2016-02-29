@@ -88,7 +88,7 @@ class Handler(BaseHandler):
         for url in urls:
             self.crawl(url, callback=self.step_fourth, save=response.save, retries=100)
 
-    @config(age=15 * 24 * 60 * 60)
+    @config(age=30 * 24 * 60 * 60)
     def step_fourth(self, response):
         d = response.doc
         url = response.url
@@ -118,6 +118,7 @@ class Handler(BaseHandler):
                    })
 
     @config(priority=2)
+    @config(age=0 * 24 * 60 * 60)
     def step_fifth(self, response):
         text = response.text
         s = response.save
@@ -126,11 +127,18 @@ class Handler(BaseHandler):
         vendor_id = re.findall(pat_vendor, text)[0]
         t = {'sale_status': sale_status, 'vendor_id': vendor_id}
         data = dict(t.items() + s.items())
-        url_t = 'http://product.suning.com/pds-web/ajax/vendorInfo_' \
-                + vendor_id + '.html'
-        self.crawl(url_t, callback=self.step_sixth, retries=100, save=json.dumps(data))
+        return [
+            s['orig_url'],
+            json.dumps(data),
+            time.strftime('%Y-%m-%d %X', time.localtime())
+        ]
+        # url_t = 'http://product.suning.com/pds-web/ajax/vendorInfo_' \
+        #         + vendor_id + '.html'
+        # self.crawl(url_t, callback=self.step_sixth, retries=100, save=json.dumps(data))
 
+    """
     @config(priority=3)
+    @config(age=0 * 24 * 60 * 60)
     def step_sixth(self, response):
         data_t = json.loads(response.save)
         vendor_info = {'vendor_info': json.loads(response.text)}
@@ -151,6 +159,7 @@ class Handler(BaseHandler):
             json.dumps(detail),
             crawl_time
         ]
+    """
 
     # override method for result store to mysql
     def on_result(self, result):
