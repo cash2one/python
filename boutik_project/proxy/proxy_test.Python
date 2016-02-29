@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/2/29 23:24
+# Project:proxy_test
+# Author:yangmingsong_HOME
+
+from ms_spider_fw.DBSerivce import DBService
+from Queue import Queue as qu
+import threading
+import time
+from pyspider.libs.base_handler import *
+import requests
+import json
+import re
+
+# config text
+db_name = 'spider'
+# give some tables name to extract proxy list to test , different table name be combined use ','
+table_name_s = 'proxy_you_dai_li'
+proxy_list = []
+for table_name in table_name_s.split(','):
+    db_server = DBService(dbName=db_name, tableName=table_name)
+    proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
+
+# script
+patt_ip = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])')
+qu_proxy_test = qu(0)
+qu_proxy_ok = qu(0)
+
+for t in set(proxy_list):
+    qu_proxy_test.put(t)
+
+def original_ip_address():
+    t = requests.get('http://httpbin.org/ip').text
+    return json.loads(t).get('origin')
+
+
+original = original_ip_address()
+
+
+def proxy_test(proxy, port=None, timeout=1):
+    """
+    proxy_test the given proxy and port is ok,return true fo false
+    :param proxy: ip address ; like '10.1.12.117' ; it can be given like this '10.1.12.117:8080'
+    :param port:  port ; like '8080'
+    :param timeout: time out setting , type is int
+    :return: True or False
+
+    Usage:
+    test(proxy=12.1.1.113,port=9090,timeout=1)
+    or
+    test(proxy='12.1.1.1:8080')
+    """
+
+    if ':' in proxy:
+        proxy_port = proxy
+    elif port is None:
+        print """the port is not given , please check"""
+        raise
+    else:
+        proxy_port = str(proxy) + str(port)
+
+    s = requests.Session()
+    proxy_OK = {'http': 'http://%s' % proxy_port}
+    try:
+        res = s.get('http://httpbin.org/ip', proxies=proxy_OK, timeout=timeout)
+    except Exception, e:
+        print e.message
+        return False
+
+    ip_return = re.findall(patt_ip, res.text)
+    if ip_return \
+            and proxy.split(':')[0] == ip_return[0] \
+            and len(ip_return) == 1 \
+            and original not in ip_return \
+            and len(res.text) < 100:
+        return True
+
+    return False
+
+
+def test():
+    while qu_proxy_test.qsize():
+        # noinspection PyBroadException
+        try:
+            proxy = qu_proxy_test.get(timeout=1)
+        except Exception:
+            break
+        if proxy_test(proxy, timeout=3):
+            print proxy
+            qu_proxy_ok.put([proxy, time.strftime('%Y-%m-%d %X', time.localtime())])
+
+
+def run_test(n):
+    print 'Runnig proxy test process , please waiting'
+    tsk_pool = []
+    while n > 0:
+        tsk_pool.append(threading.Thread(target=test))
+        n -= 1
+    for tsk in tsk_pool:
+        tsk.start()
+    for tsk in tsk_pool:
+        tsk.join()
+    print 'Proxy test process is end .'
+
+
+def run(thread_count=1000):
+    run_test(thread_count)
+    db_server_c = DBService(dbName=db_name, tableName='proxy_ok')
+    db_server_c.createTable(tableTitle=['proxy_port', 'test_time'], x='Y')
+    res = []
+    while qu_proxy_ok.qsize():
+        res.append(qu_proxy_ok.get())
+    db_server_c.data2DB(data=res)
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+    }
+
+    @every(minutes=0.5 * 24 * 60)
+    def on_start(self):
+        run(5000)

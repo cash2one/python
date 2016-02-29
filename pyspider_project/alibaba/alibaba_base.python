@@ -31,7 +31,7 @@ par_href_parameters=re.compile('"hidden" value="(\S+?)" name="(\S+?)"')
 
 class Handler(BaseHandler):
     crawl_config = {
-        'proxy': '10.10.10.10:80',
+        # 'proxy': '10.10.10.10:80',
         'headers': {
             'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
         }
