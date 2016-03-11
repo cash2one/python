@@ -1,60 +1,58 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# Created on:2016/2/23 10:31
-# Project:temp
-# Author:yangmingsong
-
-import requests as req
-import re
-from pyquery.pyquery import PyQuery
+from ms_spider_fw.DBSerivce import DBService
 import json
-import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+from ms_spider_fw.CSVService import CSV
 
-pat_page_config = re.compile('pageConfig = (.+?);', re.DOTALL)
-pat_word = re.compile('\w+:')
-pat_score = re.compile('<span class="score-desc">(.+?)<.+?"number">(.+?)<.+?<'
-                       'i class="(\w+?)">.+?"percent">(.+?)<', re.DOTALL)
-pat_par = re.compile('<li title=.+?>(.+?)</li>')
+db_server = DBService(dbName='platform_data', tableName='jd_comment_cellphone_0')
+data = db_server.getData(var='comment_json', distinct=True)
+data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
-res_t = req.get('http://item.jd.com/1290976.html')
-txt = res_t.text
-d = PyQuery(txt)
 
-data_temp = re.findall(pat_page_config, txt)[0]
-data = re.sub('\s+', '', data_temp)
-data = data.replace("'", '"')
-data_sub = re.findall(pat_word, data)
-for w in data_sub:
-    if w == 'http:':
-        continue
-    else:
-        temp = data.replace(w, '"' + w[:-1] + '"' + ':')
-        data = temp
-data=json.loads(data)
+def extract_info(x):
+    try:
+        d_t = json.loads(x[0])
+        d = d_t['comments']
+        return [
+            [
+                it.get('id'),
+                it.get('guid'),
+                it.get('content'),
+                it.get('creationTime'),
+                it.get('referenceName'),
+                it.get('referenceTime'),
+                it.get('referenceType'),
+                it.get('replyCount'),
+                it.get('score'),
+                it.get('status'),
+                it.get('usefulVoteCount'),
+                it.get('uselessVoteCount'),
+                it.get('userLevelId'),
+                it.get('userProvince'),
+                it.get('userRegisterTime'),
+                it.get('viewCount'),
+                it.get('orderId'),
+                it.get('isReplyGrade'),
+                it.get('nickname'),
+                it.get('userClient'),
+                it.get('productColor'),
+                it.get('productSize'),
+                it.get('integral'),
+                it.get('anonymousFlag'),
+                it.get('userLevelName'),
+                it.get('recommend'),
+                it.get('userClientShow'),
+                it.get('isMobile'),
+                it.get('days')
+            ]
+            for it in d
+            ]
+    except:
+        return []
 
-temp = list(d('.breadcrumb a').items())[:-1]
-cate = {temp.index(t): t.text() for t in temp}
 
-temp = list(d('.lh>li img').items())
-img_src = {temp.index(t): t.attr('src') for t in temp}
+data = reduce(lambda x, y: x + y, map(extract_info, data))
+title = ['id', 'guid', 'content', 'creationTime', 'referenceName', 'referenceTime', 'referenceType', 'replyCount',
+         'score', 'status', 'usefulVoteCount', 'uselessVoteCount', 'userLevelId', 'userProvince', 'userRegisterTime',
+         'viewCount', 'orderId', 'isReplyGrade', 'nickname', 'userClient', 'productColor', 'productSize', 'integral',
+         'anonymousFlag', 'userLevelName', 'recommend', 'userClientShow', 'isMobile', 'days']
 
-temp = list(d('.label+.text').items())
-template={0:'com_name',1:'addr'}
-com_info = {template[temp.index(t)]: t.text() for t in temp}
-shop_info={'shop_name':d('.name').attr('title'),'shop_href':d('.name').attr('href')}
-shop=dict(com_info.items()+shop_info.items())
-
-score_total = {'score_sum': d('.score-sum a').text()}
-score_detail = re.findall(pat_score, txt)
-score_detail = {t[0]: {'score': t[1], 'up_down': t[2], 'rate': t[3]} for t in score_detail if len(t) == 4}
-score = dict(score_total.items() + score_detail.items())
-
-product_parameters_t=re.findall(pat_par, txt)
-product_parameters={t.split('：',1)[0]:t.split('：',1)[1] for t in product_parameters_t}
-
-detail = {'catagory': cate, 'image_src': img_src, 'shop_com_information': shop, 'score_detail': score,
-                  'product_parameters': product_parameters,'sku_info':data}
-
-print json.dumps(detail)
+CSV().writeCsv(savePath='d:', fileTitle=title, data=data, fileName='jd_comment_info_extract.csv')

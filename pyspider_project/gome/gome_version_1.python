@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# Created on:2016/1/23 12:22
-# Project:gome_spider_product
-# Author:yangmingsong_HOME
+# Created on:2016/3/7 19:54
+# Project:gome_version_1
+# Author:yangmingsong
 
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
+import time
 
 # config_text
 # when start a spider,you should modify the next config text first
 
-db_name = ''  # database name for store data , string
+db_name = 'platform_data'
 table_name = ''  # table name for store data , string
-table_title = ''  # table title for store data , should be string separated by ','
+table_title = ',crawl_time'  # table title for store data , should be string separated by ','
 url_start = ''  # start url for crawl,string
 # connect string , usually no need to modify
 connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
@@ -39,11 +40,19 @@ class Handler(BaseHandler):
     @config(age=2 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
-        for t in d('').items():
-            self.crawl(t.attr.href, callback=self.my_result)
+        for t in d('.in>a').items():
+            self.crawl(t.attr.href, callback=self.step_second, retries=100)
+
+    def step_second(self,response):
+        d=response.doc
+        p_t = d('#mp-currentNumber').attr('data-totalpagenum')
+        p_n = d('#mp-currentNumber').text()
+
 
     @config(priority=2)
     def my_result(self, response):
+        d = response.doc
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return []
 
     # over ride method for result store to mysql
