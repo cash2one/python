@@ -9,7 +9,7 @@ from myTool.listSplit import listSplit
 
 # 本模块仅针对不需跟进的页面
 
-queueForDownLoad = Queue(0) # 模块变量，用于传递下载回来的源码
+queueForDownLoad = Queue(0)  # 模块变量，用于传递下载回来的源码
 
 
 class DownLoadBase:
@@ -36,9 +36,9 @@ class DownLoadBase:
         # url列表分割，n为分割份数
         """
         data = self.startUrlList()
-        F=lambda n,L:n if len(L)>n else len(L)
-        n=F(n,data)
-        if n==0:
+        F = lambda n, L: n if len(L) > n else len(L)
+        n = F(n, data)
+        if n == 0:
             raise
         urlList = listSplit(data, n)
         return urlList
@@ -66,8 +66,8 @@ class DownLoadBase:
 
         def downLoade(self):
             while not self.urlSoup.isEmpty():
-                url,src = DownLoader(self.urlSoup.next()[0]).getPageSource()
-                queueForDownLoad.put((url,src))
+                url, src = DownLoader(self.urlSoup.next()[0]).getPageSource()
+                queueForDownLoad.put((url, src))
 
         def run(self):
             self.downLoade()
@@ -83,7 +83,7 @@ class DownLoadBase:
             downLoadList.append(self.DownLoad(urlSup))
         for item in downLoadList:
             time.sleep(0.1)
-            item.setDaemon(True)# 主线程结束则子线程停止执行
+            item.setDaemon(True)  # 主线程结束则子线程停止执行
             item.start()
-        # for item in downLoadList:
-        #     item.join()
+            # for item in downLoadList:
+            #     item.join()

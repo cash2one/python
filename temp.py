@@ -405,7 +405,6 @@ def page_parse(res):
 
 page_crawl()
 
-
 ####################################################################################################
 import requests as req
 import urllib
@@ -417,14 +416,12 @@ conn = pymysql.connect(**connect_dict)
 url_t = "http://search.jd.com/shop_new.php?ids=1000001925,169299,158027,148106,133802,126538,123424,83737,80218,38059"
 referer = 'http://search.jd.com/Search?keyword=%E6%89%8B%E6%9C%BA&enc=utf-8&wq=%E6%89%8B%E6%9C%BA&pvid=oqp82dli.ohg2b2'
 res = req.get(url_t, headers={'Referer': referer})
-ref_quote=urllib.unquote(referer)
+ref_quote = urllib.unquote(referer)
 
-
-
-sql="""SELECT t.category FROM platform_data.`jd_base` t;"""
-sql_detail="""SELECT t.detail FROM platform_data.`jd_base` t;"""
-fw=pandas.read_sql(sql=sql,con=conn)
-fw_detail=pandas.read_sql(sql=sql_detail,con=conn)
+sql = """SELECT t.category FROM platform_data.`jd_base` t;"""
+sql_detail = """SELECT t.detail FROM platform_data.`jd_base` t;"""
+fw = pandas.read_sql(sql=sql, con=conn)
+fw_detail = pandas.read_sql(sql=sql_detail, con=conn)
 
 json_file =
 j_f = json.loads(json_file)
@@ -432,3 +429,46 @@ j_f['crawl_url'] = {}
 shop_id = [item[1].get('shopid') for item in j_f.items()]
 shop_id = set(filter(lambda x: 1 if not x == '0' else 0, filter(lambda x: 1 if x else 0, shop_id)))
 
+####################################################################################################
+url = 'http://meanwhileclothing.en.alibaba.com/contactinfo.html'
+_cookie = 'ali_apache_id=220.152.150.99.1433075894474.773074.1; xman_us_f=x_l=1&x_locale=zh_CN&no_popup_today=n&' \
+          'x_user=CN|ms|yang|cnfm|227830436&last_popup_time=1457712623553; xman_f=IisD7O+QtSHDaZw7Ro4eZrboy8ZoT3YH' \
+          '5qBALupxuPPdhCfEPfiZuS0rL4FX7cpwIMopUXSj21PfVbpV7A9cxgY6PAnxGrJRZzb/GRClvq+p43XuioIX6eV1FtSJh+oNldA1vro' \
+          'bSSRF8XHfpnoQ1psOAq0y7wfNUxjpICfbeS8pnjDtA5rBuSplRf7FPhilgrWxs/30SUnxA7PN3PPm8o/kZhzAIlZ7m3MTpPfaaCY7CN' \
+          'iaRJE+45DJY6+upuaCWEAS2ED0LzlaPYRh8+2EF8RTogxUL3tJz2AHgPFFFQQdQ2ZbNHybyNL034NAKvCAzBUETWBiM6XPsCDFDHyA3' \
+          'SDNpSLCkjbNMIGG6HVcG3RDbEXdb6Yyiy8RJ1sXBpjoOpMNGuUZ7qubAyTpTSHoEQ==; ali_beacon_id=220.152.150.99.14330' \
+          '75894474.773074.1; cna=PDviDaz2VHICAdyYlirqiemC; ali_ab=220.152.150.99.1433075902695.2; gangesweb-bucke' \
+          'ttest=14.103.20.154.1439482574780.0; cn_8915ac475b2e7q858f6f_dplus=%7B%22distinct_id%22%3A%20%2214f27d8' \
+          '214c47-041b52e392137b8-4b594136-144000-14f27d8214d5d5%22%2C%22%24initial_time%22%3A%201439453719%2C%22%' \
+          '24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%2C%' \
+          '22%24recent_outside_referrer%22%3A%20%22%24direct%22%7D; cn_session_id_8915ac475b2e7q858f6f=1439482519;' \
+          ' l=AuvrvIr7l1sfL5ftX7thOJzpWwHVfP-C; acs_usuc_t=acs_rt=04adc570449b4500b45667b927f76911; ' \
+          'xman_t=Aq2yaxoSDiVc2VFqR3p07WwMhTH3R/Xw0/QR6SMYu1hRXwb8y50kM5HZD3f8iXHjgwNKh2to/EKLlyWLtrXebwoy8P7Ygi0k' \
+          '6RPnghqKnlC/JJrr80No0G59Pdc3lpV+73dXKsKIxjV72GprFDthgKiCEqZULzCYmBx+umutjlYGRChR0RfvHFRxJrmftp3UtAfI5Dy' \
+          'NMMU+9Lb6fyexuo32t1veMVr0C7WRm+jXVwyavxVVaCoCWh2IAFGOcLetCqn0Tnz6A/7a873dTWbuegXUAf1ibP1C88lwGZHhgko/9H' \
+          'q3jc3wWGvi44asXeiHj424PkBKZzjYEqFIAaGT0823HiwyTUkrpHk9mT7S9aKhnvA6ZuTH60t+EEMqj1MB7TnTqV+k/w37E5Z4dvmm6' \
+          'mMzM70hiTJVQwjDTyVsKVoLtdLpL3mTvRyZrWy9g1ID5cLXurJqpqds++ZuaaM7x6NdfjELr3RbpXvl+B95Qc691gbdoHYgNg79jIsG' \
+          'OZhUqngMimuzR4Ug7x2nBpE44clwx/fSNC8a14Kyg/v8mzEiTyWdMpgdCv9EIPes/3VJZptxox6Les/rDwYHwtzpk6GEQ0ez0AJIfD/' \
+          'dTcjx3uyMZbY7+G154bUqEehqiEIfQZON6mkfVBNKxtFK2hbMXUHcclK8kMNWVtRxicOujTkMEWUYGAHyUMq9i1tZIHlK4DHZv2bKxb' \
+          't91EGQK1lvVGQvsGvY4Asu; acs_rt=fb98f4ae26004875baf0f3450f12210f; ali_apache_track="mt=2|ms=|mid=cn151778' \
+          '3167fxcg"; ali_apache_tracktmp="W_signed=Y";_umdata' \
+       '=8D5462A7710B16F8D1DE8DF86205FD525C80C1F3E9ED159353D27A988B78E33A95124095E980AB8DBA1A2351A9C8C74E01C0BCDCAB3FBFC' \
+          '411759B14F9CEB2B359DABA6FBF2624AE5AFF9C0F6889F2732095993F18FE7B52D18529826EC23E36EEA6B27956624A9D;' \
+          ' xman_us_t=sign=y&x_lid=cn1517783167fxcg&x_user=snjfbkxR3NkcVQQGvr9LO/fN4xN032k/8g7FATOGjaI=&ctoken=' \
+          '4ga5m1191nr7&need_popup=n; intl_locale=zh_CN; intl_common_forever=mSNCHwz4DlNY7Rx/fF379Ghsha//BhsRueoX8' \
+          '0dg9FGNg4ko5BMPLQ=='
+cookie = dict(map(lambda x: (x.split('=', 1)[0], x.split('=', 1)[1]), _cookie.split(';')))
+from requests import Session, Request
+r = Session()
+url='http://brictec.en.alibaba.com/contactinfo.html'
+_prep = Request(method='GET', url=url, cookies=cookie)
+prep = r.prepare_request(_prep)
+rsu_1 = r.send(prep)
+print rsu_1.content
+
+
+####################################################################################################
+from ms_spider_fw.DBSerivce import DBService
+connect_dict = {'host': '118.193.220.134', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
+dbs = DBService(dbName='aliexpress', tableName='store_name', **connect_dict)
+data=dbs.getData(var='store_name',distinct=True)
