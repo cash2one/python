@@ -1,53 +1,14 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# Created on:2016/3/4 14:46
-# Project:temp_0
+from ms_spider_fw.DBSerivce import DBService
+import time
 
+with open('D:/proxy_2.txt', 'r')as f:
+    t = f.read()
+proxy_list = t.split('\n')
+proxy_list = [[item, time.strftime('%Y-%m-%d %X', time.localtime())] for item in proxy_list]
+print len(proxy_list)
 
-import requests as req
-from pyquery.pyquery import PyQuery as pq
-
-url_base = 'http://www.stylemode.com/fashion/fashionideas/'
-url_pool = set()
-url_had_crawled = set()
-url_pool.add(url_base)
-
-
-# page_turning
-def page_turn(res):
-    d = pq(res)
-    for item in d('.pager.text-center.clearfix>a').items():
-        url = item.attr('href')
-        if not url == '#':
-            url_pool.add(url)
-
-
-# page crawling
-def page_crawl():
-    while len(url_had_crawled) < len(url_pool):
-        url = url_pool.difference(url_had_crawled).pop()
-        res = req.get(url).text
-        page_turn(res)
-        # TODO
-        print page_parse(res)
-        url_had_crawled.add(url)
-
-
-def page_parse(res):
-    d = pq(res)
-    fw = d('.clearfix.list-unstyled.list-content>li').items()
-    return [
-        {
-            'title': t('img').attr('alt'),
-            'src_image_href': t('img').attr('src'),
-            'page_href': t('img-wrap').prev().attr('href'),
-            'view_count': t('.icon:nth-child(1)').next().text(),
-            'like_count': t('.icon:nth-child(2)').next().text(),
-            'time': t('.option time').text()
-        }
-        for t in fw
-        ]
-
-
-if __name__ == '__main__':
-    page_crawl()
+db_name = 'b2c_base'
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+db_server_c = DBService(dbName=db_name, tableName='proxy_other_source', **connect_dict)
+db_server_c.createTable(tableTitle=['proxy_port', 'test_time'])
+db_server_c.data2DB(data=proxy_list)

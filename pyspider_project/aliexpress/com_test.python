@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/3/14 17:15
+# Project:com_test
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+import re
+
+# config_text
+
+db_name = 'alibaba'
+table_name = 'contact_info'
+table_title = 'company_name,company_name_original,contact_person,department,provice,city,address,telephone,' \
+              'mobile_phone,fax_number,crawl_time'
+connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+
+_pat = re.compile("<dt>(.+?)</dt>.+?>(.+?)</dd>", re.DOTALL)
+
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+
+def get_urls():
+    db_g = DBService(dbName=db_name, tableName='store_name', **connect_dict)
+    url_t = 'http://www.alibaba.com/trade/search?fsb=y&IndexArea=company_en&CatId=&SearchText='
+    com_list_t = db_g.getData(var='store_name', distinct=True)
+    com_list = filter(
+            lambda x: 1 if 'ltd' in x.lower() or 'limit' in x.lower() or 'company' in x.lower() else 0
+            , [item[0] for item in com_list_t]
+    )
+    com_list = map(lambda x: x.lstrip().rstrip(), com_list)
+    url_s = map(
+            lambda x: url_t + x.replace(',', '%2C').replace(' ', '+')
+            , com_list
+    )
+    return url_s
+
+
+_headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+    'Accept-Encoding': 'gzip, deflate',
+    'Referer': 'http://www.alibaba.com',
+    'Connection': 'keep-alive'
+}
+
+_cookie = 'ali_apache_id=220.152.150.99.1433075894474.773074.1; xman_us_f=x_l=1&x_locale=zh_CN&no_popup_today=n&' \
+          'x_user=CN|ms|yang|cnfm|227830436&last_popup_time=1457712623553; xman_f=IisD7O+QtSHDaZw7Ro4eZrboy8ZoT3YH' \
+          '5qBALupxuPPdhCfEPfiZuS0rL4FX7cpwIMopUXSj21PfVbpV7A9cxgY6PAnxGrJRZzb/GRClvq+p43XuioIX6eV1FtSJh+oNldA1vro' \
+          'bSSRF8XHfpnoQ1psOAq0y7wfNUxjpICfbeS8pnjDtA5rBuSplRf7FPhilgrWxs/30SUnxA7PN3PPm8o/kZhzAIlZ7m3MTpPfaaCY7CN' \
+          'iaRJE+45DJY6+upuaCWEAS2ED0LzlaPYRh8+2EF8RTogxUL3tJz2AHgPFFFQQdQ2ZbNHybyNL034NAKvCAzBUETWBiM6XPsCDFDHyA3' \
+          'SDNpSLCkjbNMIGG6HVcG3RDbEXdb6Yyiy8RJ1sXBpjoOpMNGuUZ7qubAyTpTSHoEQ==; ali_beacon_id=220.152.150.99.14330' \
+          '75894474.773074.1; cna=PDviDaz2VHICAdyYlirqiemC; ali_ab=220.152.150.99.1433075902695.2; gangesweb-bucke' \
+          'ttest=14.103.20.154.1439482574780.0; cn_8915ac475b2e7q858f6f_dplus=%7B%22distinct_id%22%3A%20%2214f27d8' \
+          '214c47-041b52e392137b8-4b594136-144000-14f27d8214d5d5%22%2C%22%24initial_time%22%3A%201439453719%2C%22%' \
+          '24initial_referrer%22%3A%20%22%24direct%22%2C%22%24initial_referring_domain%22%3A%20%22%24direct%22%2C%' \
+          '22%24recent_outside_referrer%22%3A%20%22%24direct%22%7D; cn_session_id_8915ac475b2e7q858f6f=1439482519;' \
+          ' l=AuvrvIr7l1sfL5ftX7thOJzpWwHVfP-C; acs_usuc_t=acs_rt=04adc570449b4500b45667b927f76911; ' \
+          'xman_t=Aq2yaxoSDiVc2VFqR3p07WwMhTH3R/Xw0/QR6SMYu1hRXwb8y50kM5HZD3f8iXHjgwNKh2to/EKLlyWLtrXebwoy8P7Ygi0k' \
+          '6RPnghqKnlC/JJrr80No0G59Pdc3lpV+73dXKsKIxjV72GprFDthgKiCEqZULzCYmBx+umutjlYGRChR0RfvHFRxJrmftp3UtAfI5Dy' \
+          'NMMU+9Lb6fyexuo32t1veMVr0C7WRm+jXVwyavxVVaCoCWh2IAFGOcLetCqn0Tnz6A/7a873dTWbuegXUAf1ibP1C88lwGZHhgko/9H' \
+          'q3jc3wWGvi44asXeiHj424PkBKZzjYEqFIAaGT0823HiwyTUkrpHk9mT7S9aKhnvA6ZuTH60t+EEMqj1MB7TnTqV+k/w37E5Z4dvmm6' \
+          'mMzM70hiTJVQwjDTyVsKVoLtdLpL3mTvRyZrWy9g1ID5cLXurJqpqds++ZuaaM7x6NdfjELr3RbpXvl+B95Qc691gbdoHYgNg79jIsG' \
+          'OZhUqngMimuzR4Ug7x2nBpE44clwx/fSNC8a14Kyg/v8mzEiTyWdMpgdCv9EIPes/3VJZptxox6Les/rDwYHwtzpk6GEQ0ez0AJIfD/' \
+          'dTcjx3uyMZbY7+G154bUqEehqiEIfQZON6mkfVBNKxtFK2hbMXUHcclK8kMNWVtRxicOujTkMEWUYGAHyUMq9i1tZIHlK4DHZv2bKxb' \
+          't91EGQK1lvVGQvsGvY4Asu; acs_rt=fb98f4ae26004875baf0f3450f12210f; ali_apache_track="mt=2|ms=|mid=cn151778' \
+          '3167fxcg"; ali_apache_tracktmp="W_signed=Y";_umdata' \
+          '=8D5462A7710B16F8D1DE8DF86205FD525C80C1F3E9ED159353D27A988B78E33A95124095E980AB8DBA1A2351A9C8C74E01C0BCDCAB3FBFC' \
+          '411759B14F9CEB2B359DABA6FBF2624AE5AFF9C0F6889F2732095993F18FE7B52D18529826EC23E36EEA6B27956624A9D;' \
+          ' xman_us_t=sign=y&x_lid=cn1517783167fxcg&x_user=snjfbkxR3NkcVQQGvr9LO/fN4xN032k/8g7FATOGjaI=&ctoken=' \
+          '4ga5m1191nr7&need_popup=n; intl_locale=zh_CN; intl_common_forever=mSNCHwz4DlNY7Rx/fF379Ghsha//BhsRueoX8' \
+          '0dg9FGNg4ko5BMPLQ=='
+
+_cookies = dict(map(lambda x: (x.split('=', 1)[0], x.split('=', 1)[1]), _cookie.split(';')))
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+    }
+
+    @every(minutes=24 * 60)
+    def on_start(self):
+        urls = get_urls()
+        self.crawl(urls, callback=self.step_first, headers=_headers, retries=100)
+
+    @config(age=5 * 24 * 60 * 60)
+    def step_first(self, response):
+        d = response.doc
+        if d('.item-main'):
+            for t in d('.item-main').items():
+                # name_b = response.url.replace('+', '').replace('%2C', ',').lower()
+                # name = t.find('.title.ellipsis').text().replace(' ', '').lower()
+                # if name == name_b or name_b in name:
+                name_save = response.url.replace('+', ' ').replace('%2C', ',')  # original company name
+                name_match = name = t.find('.title.ellipsis').text()
+                url_t = t.find('.title.ellipsis a').attr('href')
+                url = url_t.split('company_profile')[0] + 'contactinfo.html'
+                header = _headers
+                header['Referer'] = url_t
+                self.crawl(url, callback=self.my_result, headers=header, cookies=_cookies, retries=100,
+                           save={
+                               'com_name': name_save,
+                               'com_name_match': name_match
+                           })
+                break
+
+    @config(priority=2)
+    def my_result(self, response):
+        d = response.doc
+        com_name_original = response.save['com_name']
+        company_name = response.save['com_name_match']
+        contact_name = d('.name').text()
+        info_detail = dict(re.findall(_pat, response.text))
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            company_name,
+            com_name_original,
+            contact_name,
+            info_detail.get('Department:'),
+            info_detail.get('Province/State:'),
+            info_detail.get('City:'),
+            info_detail.get('Address:'),
+            info_detail.get('Telephone:'),
+            info_detail.get('Mobile Phone:'),
+            info_detail.get('Fax:'),
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'

@@ -472,3 +472,6 @@ from ms_spider_fw.DBSerivce import DBService
 connect_dict = {'host': '118.193.220.134', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
 dbs = DBService(dbName='aliexpress', tableName='store_name', **connect_dict)
 data=dbs.getData(var='store_name',distinct=True)
+
+import re
+pat=re.compile("<dt>(.+?)</dt>.+?>(.+?)</dd>",re.DOTALL)

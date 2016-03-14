@@ -6,52 +6,77 @@
 
 from pyspider.libs.base_handler import *
 from ms_spider_fw.DBSerivce import DBService
+import sys
+import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 db_name = 'aliexpress'
 table_name = 'store_name'
 table_title = 'category,store_name,store_href'
 url_start = 'http://www.aliexpress.com/all-wholesale-products.html?spm=2114.11010108.22.1.wucNxZ'
-connect_dict = {'host': 'localhost', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
+# connect_dict = {'host': 'localhost', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
 
 # now,the next is spider script
-db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+db_server = DBService(dbName=db_name, tableName=table_name)  # , **connect_dict)
 # if create table for store result in mysql , no need to be changed
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 
+_cookie = """ali_apache_id=59.40.96.9.1457660957680.289490.5; ali_beacon_id=59.40.98.119.1457589996663.894424.4; cna=fgYVD6yESA8CAXkigLi8M67D; isg=34384947211CA2E3E767ACC11494E9B7; l=AgEBfnggo0fljaKaTeO7XpBOMUcbZ3Uj; JSESSIONID=3A5A23FF1FA64B41A87D9D24C7430D2B; xman_us_f=x_l=1&x_locale=en_US&no_popup_today=n&x_user=US|tom|json|ifm|767484946&last_popup_time=1457932031499; aep_usuc_f=site=glo&region=US&b_locale=en_US&isb=y&isfm=y&x_alimid=767484946&c_tp=USD; acs_usuc_t=acs_rt=960412f3fde74701acff582f3915507b; xman_t=5/DD6WDwRBFJJAg3Qa/EBLqIJDPS2qZZL1yADugjeqkEBHXPW0mUgdyt3cun2lBCg0eLmY5T6KT4Gl19TRTeCi5iUdw1V0eMr2+hY1spcxotBCA3ngHXMx36IHmYotKTSSvRl4rDEDze+k1fdja3CCe6jCq8pHaZ1lac/BrxBgbpmGOrMl5NLBxlJSGVdFfYNZ9+fPrP7YAKinHdQgNFxu4TaTQoG5CWeZ0rZhtHcnEZWZX8FlfIX+Ml34wtJlo2zNtAs/9Eu9h5rfh3k2Qdj9pKlUL6QO2jYu/Wyo/KlLHpFQSKO/6mYFb9lPU7F9oaaKP6wiyLNGpzlqowk2BaL0Pke9pclnk2ZvZNaYIrRQV57tgekoKOPKW467Vy6KLMBsOWomXS6wveBu7XLPVCRyHJjCwJDl4IS+JpmrdC3YwVPu9nX5t9djMTHiMamjLJB0iDGWn1dtG6nK5H+XPcys9PB6gxgROCFL6U6ek1jJU4Lkm74zZ+4ebUJ566u4b6R3MqRKK1+cTft8ofzElUcrYnxZLOcbe6/UvDuq3sb1iV4yCaAuASlw9pAR09SqTHZQ4na3HvvxqT8WCUBaY6KWGrkhjpj8A89JyywtxlMQgG30KcnJVzpI9NqBLQ6LkT; intl_locale=en_US; intl_common_forever=8Q91YxbFfjXhuMxuG99oasQJtwQJNzUKSSl0gq6JC5KZAMkU3yAEDA==; xman_f=o/Ax/1cATuOZET7CVw4AAigMAO/bZh9GBgHFyCp0AQSanP6xIMaLYJdZcqYz91slT+0T6uZLqQ/zcbr/ylBIhH5KPOofnaPeyLlqwg6aGayHi0jE8Ix1EffqO0gi7Wz/+Y8+TQhTNRgHQqgJnnj7khJAuy4ISie0VRmjnKyI+ca7o3QBz3KlW7gCXsPByQJH2NewoYma50uJAhr8ZaKiyjKxkwv3oQi8KVHTOoJFcoGq/Lt4XYBSnX+EljmI4D7+LGlY5Ha9rS/hi2DBdE9pY+2wj09ygGvWFXB8i9lkpT1kEOcqvzCxP/jK7ysPxfCjMrCqP3ci+xwdWHWOkV+L84cZ0ZUtF9IBWNP9qEcBT1U+fKZCZwRQMcxCmrFMOiNhpH7EezWPkVkhE5U0J9UiLGEjN9L1zzA5; _ga=GA1.2.2121364370.1457660927; __utma=3375712.2121364370.1457660927.1457660927.1457931939.2; __utmc=3375712; __utmz=3375712.1457660927.1.1.utmcsr=seller.aliexpress.com|utmccn=(referral)|utmcmd=referral|utmcct=/; _mle_tmp0=eNrz4A12DQ729PeL9%2FV3cfUx8KvOTLFSMnY0dTQydnMzdHM0M3EyMXS0MHexdDEycTY3MTZwMXJS0kkusTI0MTW3NDYyMDW2MDLSSUxGE8itsDKojQIAnU4X0Q%3D%3D; d_ab_f=bc5adddd5f7f49f8993b548e932d1f40; aep_history=keywords%5E%0Akeywords%09%0A%0Aproduct_selloffer%5E%0Aproduct_selloffer%091647415326; ali_apache_track=mt=1|ms=|mid=us1148338204ydmp; ali_apache_tracktmp=W_signed=Y; _gat=1; __utmb=3375712.4.9.1457932006059; __utmt=1; aep_common_f=topk7WBeHUkvCG7q0oDBVMzGO6bFTZOnV32BNSdx1L+kBbXqoI8Nsw==; xman_us_t=x_lid=us1148338204ydmp&sign=y&x_user=0ya77me7nIQ0SaiHDlzCOklwCd7Dlu7puP1q0nCEVGg=&ctoken=9svt6jmgyiw0&need_popup=y&l_source=aliexpress; u_info=CqpLsnkMPztTLjf+2QyueL4eOs7a62K4XKbCka/NcyE=; aep_usuc_t=ber_l_fg=A0"""
+
+_headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+    'Accept-Encoding': 'gzip, deflate',
+    'Connection': 'keep-alive'
+}
+
 
 class Handler(BaseHandler):
     crawl_config = {
-        # 'proxy': '10.10.10.10:80',
-        'headers': {
-            'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'
-        }
+        'proxy': '10.10.10.10:80'
     }
 
     @every(minutes=24 * 60)
     def on_start(self):
-        self.crawl(url_start, callback=self.step_first)
+        self.crawl(url_start, callback=self.step_first, retries=100, proxy=False)
 
-    @config(age=2 * 24 * 60 * 60)
+    @config(age=5 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
+        ref = 'http://www.express.com'
+        header = dict(_headers.items() + {"Referer": ref}.items())
+        cookie = dict(map(lambda x: (x.split('=', 1)[0], x.split('=', 1)[1]), _cookie.replace(' ', '').split(';')))
         for t in d('.sub-item-cont.util-clearfix>li>a').items():
-            cate=t.text()
-            self.crawl(t.attr.href, callback=self.step_second,save={'cate':cate})
+            cate = t.text()
+            self.crawl(t.attr.href, callback=self.step_second, save={'cate': cate}, headers=header, cookies=cookie,
+                       retries=100)
 
-    def step_second(self,response):
-        d=response.doc
+    @config(age=5 * 24 * 60 * 60)
+    def step_second(self, response):
+        d = response.doc
+        ref = response.url
+        cate = response.save['cate']
+        header = dict(_headers.items() + {"Referer": ref}.items())
+        cookie = dict(map(lambda x: (x.split('=', 1)[0], x.split('=', 1)[1]), _cookie.replace(' ', '').split(';')))
         for t in d('.ui-pagination-navi.util-left a').items():
-            self.crawl(t.attr.href, callback=self.step_second)
-        return [
-            [
-                response.save['cate'],
-                t.attr['title'],
-                t.attr.href
-            ]
-            for t in d('.store').items()
-        ]
+            self.crawl(t.attr.href, callback=self.step_second, headers=header, save={'cate': cate}, cookies=cookie,
+                       retries=100)
+        try:
+            return [
+                [
+                    cate,
+                    t.attr['title'],
+                    t.attr.href              ]
+                for t in d.find('.store').items()
+                ]
+        except TypeError:
+            with open('/home/' + cate + '_' + ref.split('?')[-1] + '_' + str(int(time.time() * 1000)) + '.txt',
+                      'wb')as f:
+                f.write(response.text)
 
     # over ride method for result store to mysql
     def on_result(self, result):
