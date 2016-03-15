@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# Created on:2016/3/15 16:21
+# Project:contact_info_aliexpress
+# Author:yangmingsong
+
+from pyspider.libs.base_handler import *
+from ms_spider_fw.DBSerivce import DBService
+import time
+import re
+import json
+
+pat = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
+
+# config_text
+db_name = 'alibaba'
+table_name = 'contact_info_aliexpress'
+table_title = 'shop_url,contact_detail,crawl_time'
+connect_dict = {
+    'host': '10.118.187.12',
+    'user': 'admin',
+    'passwd': 'admin',
+    'charset': 'utf8'
+}
+
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+
+def gen_url():
+    def url_join(t):
+        if '.html' in t:
+            return None
+        else:
+            temp = t.rsplit('/', 1)
+            return temp[0] + '/contactinfo/' + temp[1] + '.html'
+
+    def change_par(x):
+        if '//www' in x:
+            return url_join(x)
+        elif '//pt' in x:
+            return url_join(x.replace('//pt', '//www'))
+        elif '//ru' in x:
+            return url_join(x.replace('//ru', '//www'))
+        elif '//es' in x:
+            return url_join(x.replace('//es', '//www'))
+        else:
+            return None
+
+    db_g = DBService(dbName=db_name, tableName='aliexpress_temp', **connect_dict)
+    href_list_t = db_g.getData(var='store_href', distinct=True)
+    href_s = map(
+            lambda t: change_par(t), map(
+                    lambda x: x[0], href_list_t
+            )
+    )
+    return list(set(filter(lambda x: 1 if x else 0, href_s)))
+
+
+url_start = gen_url()
+
+_headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+    'Accept-Encoding': 'gzip, deflate',
+    'Connection': 'keep-alive'
+}
+
+
+class Handler(BaseHandler):
+    crawl_config = {
+        'proxy': '10.10.10.10:80',
+    }
+
+    @every(minutes=24 * 60)
+    @config(age=5 * 24 * 60 * 60)
+    def on_start(self):
+        for url in url_start:
+            header = _headers
+            header = dict(
+                    header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
+            )
+            self.crawl(url, callback=self.my_result, headers=header, retries=100)
+
+    @config(priority=2)
+    def my_result(self, response):
+        d = response.doc
+        shop_name = d('.shop-name>a').text()
+        shop_years = d('.shop-time>em').text()
+        open_time = d('.store-time>em').text()
+        contact_person = d('.contactName').text()
+        contact_block = d('.box.block.clear-block').html()
+        print response.text
+        contact_detail = re.findall(pat, contact_block)
+        crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+        return [
+            response.url.replace('contactinfo/', '').replace('.html', ''),
+            json.dumps(
+                    dict([
+                             ('shop_name', shop_name),
+                             ('contact_url', response.url),
+                             ('shop_years', shop_years),
+                             ('open_time', open_time),
+                             ('contact_person', contact_person)
+                         ] + contact_detail)
+            ),
+            crawl_time
+        ]
+
+    # over ride method for result store to mysql
+    def on_result(self, result):
+        if result:
+            db_server.data2DB(data=result)
+        else:
+            print u'result-->return None'

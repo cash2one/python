@@ -10,28 +10,33 @@ import requests
 import json
 import re
 import threading
-import logging
-
-
-FORMAT = '%(asctime)s:[%(IP)s--%(user)-8s]%(message)s'
-logging.basicConfig(level=logging.INFO, format=FORMAT)
-logger = logging.getLogger(__name__)
+import time
 
 qu_proxy_test = qu(0)
 qu_proxy_ok = qu(0)
 
 db_name = 'b2c_base'
-table_name = 'proxy_black_hat_world'
+table_name_s = 'proxy_other_source,proxy_xi_ci_dai_li,proxy_you_dai_li,mimiip'
 table_title = 'proxy_port,crawl_time'
 url_for_proxy_test = 'http://httpbin.org/ip'
 connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
 
-db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
-proxy_list = map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
-for p in proxy_list:
-    qu_proxy_test.put(p)
+# db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+# proxy_list = map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
+# for p in proxy_list:
+#     qu_proxy_test.put(p)
 
 patt_ip = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])')
+proxy_list = []
+
+for table_name in table_name_s.split(','):
+    db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+    proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port'))
+print len(proxy_list)
+proxy_list_t=list(set(proxy_list))
+print len(proxy_list_t)
+for p in proxy_list_t:
+    qu_proxy_test.put(p)
 
 
 def original_ip_address():
@@ -48,7 +53,7 @@ def test():
         s = requests.Session()
         proxy_s = {'http': 'http://%s' % proxy}
         try:
-            res = s.get('http://httpbin.org/ip', proxies=proxy_s, timeout=1)
+            res = s.get('http://httpbin.org/ip', proxies=proxy_s, timeout=0.1)
         except:
             continue
         ip_return = re.findall(patt_ip, res.text)
@@ -58,8 +63,9 @@ def test():
                 and original not in ip_return \
                 and len(res.text) < 100:
             qu_proxy_ok.put(proxy)
+            print proxy
             # for test
-            logger.debug(proxy)
+            # logger.debug(proxy)
 
 
 def muti_thread_test(n):
@@ -73,8 +79,18 @@ def muti_thread_test(n):
         tsk.join()
 
 
-if __name__ == '__main__':
-    muti_thread_test(5000)
-    print '+' * 50
+def run(thread_count=20000):
+    muti_thread_test(thread_count)
+    db_server_c = DBService(dbName=db_name, tableName='proxy_ok', **connect_dict)
+    db_server_c.createTable(tableTitle=['proxy_port', 'test_time'], x='Y')
+    res = []
     while qu_proxy_ok.qsize():
-        print qu_proxy_ok.get()
+        res.append([
+            qu_proxy_ok.get(),
+            time.strftime('%Y-%m-%d %X', time.localtime())
+        ])
+    db_server_c.data2DB(data=res)
+
+
+if __name__ == '__main__':
+    run(5000)

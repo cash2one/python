@@ -25,14 +25,18 @@ if not db_server.isTableExist():
 
 
 def get_urls():
-    db_g = DBService(dbName=db_name, tableName='store_name', **connect_dict)
+    db_g = DBService(dbName=db_name, tableName='aliexpress_temp', **connect_dict)
     url_t = 'http://www.alibaba.com/trade/search?fsb=y&IndexArea=company_en&CatId=&SearchText='
     com_list_t = db_g.getData(var='store_name', distinct=True)
     com_list = filter(
             lambda x: 1 if 'ltd' in x.lower() or 'limit' in x.lower() or 'company' in x.lower() else 0
             , [item[0] for item in com_list_t]
     )
-    com_list = map(lambda x: x.lstrip().rstrip(), com_list)
+    com_list = map(
+            lambda x: re.sub('\s+?', ' ', x), map(
+                    lambda x: x.lstrip().rstrip(), com_list
+            )
+    )
     url_s = map(
             lambda x: url_t + x.replace(',', '%2C').replace(' ', '+')
             , com_list
