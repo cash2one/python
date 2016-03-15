@@ -70,7 +70,7 @@ class Handler(BaseHandler):
                 [
                     cate,
                     t.attr['title'],
-                    t.attr.href              ]
+                    t.attr.href]
                 for t in d.find('.store').items()
                 ]
         except TypeError:
