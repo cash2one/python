@@ -15,11 +15,13 @@ import time
 qu_proxy_test = qu(0)
 qu_proxy_ok = qu(0)
 
-db_name = 'b2c_base'
+# db_name = 'b2c_base'
+db_name = 'base'
 table_name_s = 'proxy_other_source,proxy_xi_ci_dai_li,proxy_you_dai_li,mimiip'
 table_title = 'proxy_port,crawl_time'
 url_for_proxy_test = 'http://httpbin.org/ip'
-connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+# connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+connect_dict = {'host': 'localhost', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
 
 # db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 # proxy_list = map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
@@ -30,11 +32,12 @@ patt_ip = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])')
 proxy_list = []
 
 for table_name in table_name_s.split(','):
+    print table_name
     db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
-    proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port'))
-print len(proxy_list)
+    if db_server.isTableExist():
+        proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port'))
+
 proxy_list_t=list(set(proxy_list))
-print len(proxy_list_t)
 for p in proxy_list_t:
     qu_proxy_test.put(p)
 
@@ -53,7 +56,7 @@ def test():
         s = requests.Session()
         proxy_s = {'http': 'http://%s' % proxy}
         try:
-            res = s.get('http://httpbin.org/ip', proxies=proxy_s, timeout=0.1)
+            res = s.get('http://httpbin.org/ip', proxies=proxy_s, timeout=1)
         except:
             continue
         ip_return = re.findall(patt_ip, res.text)
@@ -75,8 +78,10 @@ def muti_thread_test(n):
         n -= 1
     for tsk in thread_pool:
         tsk.start()
-    for tsk in thread_pool:
-        tsk.join()
+
+    time.sleep(300)
+    # for tsk in thread_pool:
+    #     tsk.join()
 
 
 def run(thread_count=20000):
@@ -93,4 +98,4 @@ def run(thread_count=20000):
 
 
 if __name__ == '__main__':
-    run(5000)
+    run()
