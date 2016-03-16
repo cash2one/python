@@ -10,6 +10,11 @@ import time
 import re
 import json
 
+connect_dict_proxy = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
+db_name_proxy = 'b2c_base'
+table_name_proxy = 'proxy_ok'
+db_server_proxy = DBService(dbName=db_name_proxy, tableName=table_name_proxy, **connect_dict_proxy)
+
 pat = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
 # config_text
@@ -24,8 +29,17 @@ connect_dict = {
 }
 
 db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
-if not db_server.isTableExist():
-    db_server.createTable(tableTitle=table_title.split(','))
+
+
+def crawled_urls():
+    if not db_server.isTableExist():
+        db_server.createTable(tableTitle=table_title.split(','))
+        return []
+    else:
+        return map(
+                lambda x: x.rsplit('/', 1)[0] + '/contactinfo/' + x.rsplit('/', 1)[1] + '.html',
+                map(lambda x: x[0], db_server.getData(var='shop_url'))
+        )
 
 
 def gen_url():
@@ -58,7 +72,9 @@ def gen_url():
     return list(set(filter(lambda x: 1 if x else 0, href_s)))
 
 
-url_start = gen_url()
+crawled_url = crawled_urls()
+gen_urls = gen_url()
+url_start = list(set(gen_urls).difference(set(crawled_url)))
 
 _headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0',
@@ -82,7 +98,10 @@ class Handler(BaseHandler):
             header = dict(
                     header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
             )
-            self.crawl(url, callback=self.my_result, headers=header, retries=100)
+            t = db_server_proxy.get_data_rand(var='proxy_port')
+            print t
+            proxy_t = 'http://%s' % t
+            self.crawl(url, callback=self.my_result, headers=header, proxy=proxy_t, retries=100)
 
     @config(priority=2)
     def my_result(self, response):

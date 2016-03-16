@@ -4,24 +4,6 @@
 # Project:contact_info_aliexpress
 # Author:yangmingsong
 
-# from ms_spider_fw.DBSerivce import DBService
-# import time
-#
-# with open('D:/proxy_2.txt', 'r')as f:
-#     t = f.read()
-# proxy_list = t.split('\n')
-# proxy_list = [[item, time.strftime('%Y-%m-%d %X', time.localtime())] for item in proxy_list]
-# print len(proxy_list)
-#
-# db_name = 'b2c_base'
-# connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
-# db_server_c = DBService(dbName=db_name, tableName='proxy_other_source', **connect_dict)
-# db_server_c.createTable(tableTitle=['proxy_port', 'test_time'])
-# db_server_c.data2DB(data=proxy_list)
-#
-
-
-
 from ms_spider_fw.DBSerivce import DBService
 from pyquery.pyquery import PyQuery
 from Queue import Queue
@@ -31,7 +13,6 @@ import time
 import re
 import json
 import threading
-from selenium.webdriver import PhantomJS
 
 connect_dict_proxy = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
 db_name_proxy = 'b2c_base'
@@ -112,44 +93,44 @@ def download_page(url):
     proxy_0 = 'http://%s' % t
     proxy_t = {'http': proxy_0}
     header = _headers
-    # header = dict(
-    #         header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
-    # )
-    header = header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
-    # response = requests.get(url, proxies=proxy_t, headers=header,verify=True,timeout=1)
-    # return response.content
-    proxyHandler = urllib2.ProxyHandler(proxy_t)
-    opener = urllib2.build_opener(proxyHandler)
-    opener.addheaders = header
-    request = opener.open(url)
-    content = request.read()
-    request.close()
-    return content
+    header = dict(
+            header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
+    )
+    # header = header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
+    response = requests.get(url, proxies=proxy_t, headers=header,verify=True,timeout=1)
+    return response.content
+    # proxyHandler = urllib2.ProxyHandler(proxy_t)
+    # opener = urllib2.build_opener(proxyHandler)
+    # opener.addheaders = header
+    # request = opener.open(url)
+    # content = request.read()
+    # request.close()
+    # return content
 
 
 def __page_parse(content, url):
     d = PyQuery(content)
-    print content[:400].encode('utf8')
-    # shop_name = d.find('.shop-name>a').text()
-    # shop_years = d.find('.shop-time>em').text()
-    # open_time = d.find('.store-time>em').text()
-    # contact_person = d.find('.contactName').text()
-    # contact_block = d.find('.box.block.clear-block').html()
-    # contact_detail = re.findall(pat, contact_block)
-    # crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
-    # return [
-    #     url.replace('contactinfo/', '').replace('.html', ''),
-    #     json.dumps(
-    #             dict([
-    #                      ('shop_name', shop_name),
-    #                      ('contact_url', url),
-    #                      ('shop_years', shop_years),
-    #                      ('open_time', open_time),
-    #                      ('contact_person', contact_person)
-    #                  ] + contact_detail)
-    #     ),
-    #     crawl_time
-    # ]
+    print content[:200].encode('utf8')
+    shop_name = d.find('.shop-name>a').text()
+    shop_years = d.find('.shop-time>em').text()
+    open_time = d.find('.store-time>em').text()
+    contact_person = d.find('.contactName').text()
+    contact_block = d.find('.box.block.clear-block').html()
+    contact_detail = re.findall(pat, contact_block)
+    crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
+    return [
+        url.replace('contactinfo/', '').replace('.html', ''),
+        json.dumps(
+                dict([
+                         ('shop_name', shop_name),
+                         ('contact_url', url),
+                         ('shop_years', shop_years),
+                         ('open_time', open_time),
+                         ('contact_person', contact_person)
+                     ] + contact_detail)
+        ),
+        crawl_time
+    ]
 
 
 def page_parse(url):
@@ -160,11 +141,9 @@ def page_parse(url):
 if __name__ == '__main__':
     queue_urls = Queue(0)
     queue_status = Queue(0)
-    # crawled_url = crawled_urls()
-    # gen_urls = gen_url()
-    # url_start = list(set(gen_urls).difference(set(crawled_url)))
-    url_start='http://www.baidu.com-'*10000
-    url_start=url_start.split('-')[:-1]
+    crawled_url = crawled_urls()
+    gen_urls = gen_url()
+    url_start = list(set(gen_urls).difference(set(crawled_url)))
     for url in url_start:
         queue_urls.put(url)
 
@@ -174,7 +153,7 @@ if __name__ == '__main__':
             url = queue_urls.get()
             try:
                 page_data = page_parse(url)
-                print page_data.encode('utf8')
+                print page_data,
                 db_server.data2DB(data=page_data)
             except Exception, e:
                 print e.message,
