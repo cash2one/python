@@ -118,7 +118,7 @@ def download_page(url):
 
 def __page_parse(content, url):
     d = PyQuery(content)
-    print content[:200].encode('utf8')
+    # print content[:200].encode('utf8')
     shop_name = d.find('.shop-name>a').text()
     shop_years = d.find('.shop-time>em').text()
     open_time = d.find('.store-time>em').text()
@@ -161,7 +161,7 @@ if __name__ == '__main__':
             url = queue_urls.get()
             try:
                 page_data = page_parse(url)
-                print page_data,
+                print page_data
                 db_server.data2DB(data=page_data)
             except Exception, e:
                 print e.message,
