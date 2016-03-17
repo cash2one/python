@@ -14,11 +14,6 @@ import re
 import json
 import threading
 
-connect_dict_proxy = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
-db_name_proxy = 'b2c_base'
-table_name_proxy = 'proxy_ok'
-db_server_proxy = DBService(dbName=db_name_proxy, tableName=table_name_proxy, **connect_dict_proxy)
-
 pat = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
 # config_text
@@ -31,6 +26,8 @@ connect_dict = {
     'passwd': 'admin',
     'charset': 'utf8'
 }
+
+queue_proxy = Queue(0)
 
 db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 
@@ -84,33 +81,43 @@ def gen_url():
     return list(set(filter(lambda x: 1 if x else 0, href_s)))
 
 
+# api_url = 'http://api.bigdaili.com/?'
+# 'api=201603161910219425&'
+# 'dengji=%E6%99%AE%E5%8C%BF&'
+# 'checktime=1%E5%88%86%E9%92%9F%E5%86%85&ct=20'
+
+
+def proxy_api(
+        api_url='http://qsdrk.daili666api.com/ip/?tid=557893998216459&num=20&sortby=time'
+):
+    while True:
+        ip_total_i = requests.get(api_url).text
+        for proxy in list(set(filter(lambda x: 1 if x else 0, ip_total_i.split('\r\n')))):
+            queue_proxy.put(proxy)
+        time.sleep(5)
+
+
 def download_page(url):
-    try:
-        t = db_server_proxy.get_data_rand(var='proxy_port')
-        print t
-    except:
-        t = '127.0.0.1:80'
+    def proxy():
+        p = queue_proxy.get()
+        if p: return p
+        time.sleep(1)
+        proxy()
+
+    t = proxy()
+    print t
     proxy_0 = 'http://%s' % t
     proxy_t = {'http': proxy_0}
     header = _headers
     header = dict(
             header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
     )
-    # header = header.items() + {'Referer': url.replace('contactinfo/', '').replace('.html', '')}.items()
-    response = requests.get(url, proxies=proxy_t, headers=header,verify=True,timeout=1)
+    response = requests.get(url, proxies=proxy_t, headers=header, verify=False, timeout=3)
     return response.content
-    # proxyHandler = urllib2.ProxyHandler(proxy_t)
-    # opener = urllib2.build_opener(proxyHandler)
-    # opener.addheaders = header
-    # request = opener.open(url)
-    # content = request.read()
-    # request.close()
-    # return content
 
 
 def __page_parse(content, url):
     d = PyQuery(content)
-    print content[:200].encode('utf8')
     shop_name = d.find('.shop-name>a').text()
     shop_years = d.find('.shop-time>em').text()
     open_time = d.find('.store-time>em').text()
@@ -153,10 +160,10 @@ if __name__ == '__main__':
             url = queue_urls.get()
             try:
                 page_data = page_parse(url)
-                print page_data,
+                print page_data
                 db_server.data2DB(data=page_data)
             except Exception, e:
-                print e.message,
+                print e.message
                 queue_urls.put(url)
                 queue_status.put('err')
                 # if queue_status.qsize()%66=
@@ -164,6 +171,10 @@ if __name__ == '__main__':
 
     def run(thread_count):
         thread_pool = []
+        proxy_thread = threading.Thread(
+                target=proxy_api
+        )
+        thread_pool.append(proxy_thread)
         while thread_count > 0:
             thread_pool.append(threading.Thread(target=_run))
             thread_count -= 1

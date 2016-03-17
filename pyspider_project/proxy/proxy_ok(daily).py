@@ -15,14 +15,14 @@ db_name = 'b2c_base'
 # give some tables name to extract proxy list to test , different table name be combined use ','
 table_name_s = 'proxy_you_dai_li,proxy_xi_ci_dai_li'
 connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
-# proxy_list = []
-# for table_name in table_name_s.split(','):
-#     db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
-#     proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
+proxy_list = []
+for table_name in table_name_s.split(','):
+    db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+    proxy_list += map(lambda x: x[0], db_server.getData(var='proxy_port', distinct=True))
 
-with open("d:/proxy_2.txt", 'r')as f:
-    t = f.read()
-proxy_list = t.split('\n')
+# with open("d:/proxy_2.txt", 'r')as f:
+#     t = f.read()
+# proxy_list = t.split('\n')
 
 # script
 qu_proxy_test = qu(0)

@@ -22,8 +22,7 @@ def ip366_api():
 
 
 def bigdaili_api():
-    url_api_b = 'http://api.bigdaili.com/?api=201603161910219425&dengji=%E9%AB%98%E5%8C%BF&checktime=' \
-                '1%E5%88%86%E9%92%9F%E5%86%85'
+    url_api_b = 'http://api.bigdaili.com/?api=201603161910219425&dengji=%E9%AB%98%E5%8C%BF&checktime=1%E5%88%86%E9%92%9F%E5%86%85'
     ip_total_b = req.get(url_api_b).text
     return list(set(filter(lambda x: 1 if x else 0, ip_total_b.split('\r\n'))))
 
