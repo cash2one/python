@@ -46,6 +46,7 @@ class Down_Loader(threading.Thread):
                 self.url_parse_d.get('scheme')
                 , self.url_parse_d.get('netloc')
         )
+
         self.url_pool = set(list().append(self.url_start))
         self.url_pool_crawled = set()
         self.max_page = config_dictionary.get(self.url_start).get('max_page_count')
