@@ -8,11 +8,11 @@ from ms_spider_fw.DBSerivce import DBService
 from pyquery.pyquery import PyQuery
 from Queue import Queue
 import requests
-import urllib2
 import time
 import re
 import json
 import threading
+import random
 
 pat = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
@@ -25,6 +25,12 @@ connect_dict = {
     'user': 'admin',
     'passwd': 'admin',
     'charset': 'utf8'
+}
+
+proxy_api_config = {
+    1: 'http://www.wy96.com/api.asp?key=20160318103618532&getnum=20&notport=8088&'
+       'anonymoustype=3&filter=1',
+    2: 'http://qsdrk.daili666api.com/ip/?tid=557893998216459&num=20&sortby=time'
 }
 
 queue_proxy = Queue(0)
@@ -81,16 +87,9 @@ def gen_url():
     return list(set(filter(lambda x: 1 if x else 0, href_s)))
 
 
-# api_url = 'http://api.bigdaili.com/?'
-# 'api=201603161910219425&'
-# 'dengji=%E6%99%AE%E5%8C%BF&'
-# 'checktime=1%E5%88%86%E9%92%9F%E5%86%85&ct=20'
-
-
-def proxy_api(
-        api_url='http://qsdrk.daili666api.com/ip/?tid=557893998216459&num=20&sortby=time'
-):
+def proxy_api():
     while True:
+        api_url = proxy_api_config.get(random.randint(1, len(proxy_api_config)))
         ip_total_i = requests.get(api_url).text
         for proxy in list(set(filter(lambda x: 1 if x else 0, ip_total_i.split('\r\n')))):
             queue_proxy.put(proxy)
