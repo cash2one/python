@@ -4,11 +4,12 @@
 # Project:proxy_ok
 # Author:yangmingsong
 
-from myTool import proxy_test
-from ms_spider_fw.DBSerivce import DBService
-from Queue import Queue as qu
 import threading
 import time
+from Queue import Queue as qu
+
+from ms_proxy import proxy_test
+from ms_spider_fw.DBSerivce import DBService
 
 # config text
 db_name = 'b2c_base'

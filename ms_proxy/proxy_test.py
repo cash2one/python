@@ -18,9 +18,6 @@ def original_ip_address():
     return json.loads(t).get('origin')
 
 
-# when you try to use this module to test lots of proxies ,
-# is a good idea to change this "original" using your local IP address:
-# original = '183.54.81.55'
 original = original_ip_address()
 
 
@@ -107,11 +104,11 @@ def test_from_list(proxy_list, timeout=1):
             self.kwargs = kwargs
             self._res = None
 
-        def _t(self):
+        def __t(self):
             self._res = _test(self.p, kwargs=self.kwargs)
 
         def run(self):
-            self._t()
+            self.__t()
 
         @property
         def get_rst(self):
