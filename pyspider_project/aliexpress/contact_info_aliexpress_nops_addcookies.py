@@ -5,6 +5,8 @@
 # Author:yangmingsong
 
 from ms_spider_fw.DBSerivce import DBService
+import ms_proxy.proxy_collection as pc
+import ms_proxy.proxy_test as pt
 from pyquery.pyquery import PyQuery
 from Queue import Queue
 import requests
@@ -13,8 +15,7 @@ import re
 import json
 import threading
 import random
-import ms_proxy.proxy_collection as pc
-import ms_proxy.proxy_test as pt
+
 
 # config_text
 db_name = 'alibaba'
@@ -30,15 +31,22 @@ connect_dict = {
 # re pattern compile
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
-# get the proxies
-proxies_list_t = pc.get_proxies_from_website()
-proxies_list_ok = pt.test_from_list(proxies_list_t, 3)
+# get the proxies ，from website
+proxies_list_website = pc.get_proxies_from_website()
+# at the same time , get some proxies from localhost lldatabase
+table_names_proxies = 'proxy_other_source,proxy_you_dai_li'
+proxies_list_local = list()
+for proxies_t_n in table_names_proxies.split(','):
+    dbs = DBService(dbName='base', tableName=proxies_t_n, **connect_dict)
+    proxies_list_local += map(lambda x: x[0], dbs.getData(var='proxy_port'))
+proxies_list_total = list(set(proxies_list_website + proxies_list_local))
+proxies_list_ok = pt.test_from_list(proxies_list_total, 3)
 
 
 # testing proxy for using
 def gen_proxy():
     proxy_port = random.choice(proxies_list_ok)
-    if pt.test(proxy_port):
+    if pt.test(proxy_port, timeout=3):
         return proxy_port
     return gen_proxy()
 
