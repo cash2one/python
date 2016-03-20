@@ -16,7 +16,6 @@ import json
 import threading
 import random
 
-
 # config_text
 db_name = 'alibaba'
 table_name = 'contact_info_aliexpress_com'
@@ -28,18 +27,19 @@ connect_dict = {
     'charset': 'utf8'
 }
 
-# re pattern compile
+# compile regular expression pattern
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
-# get the proxies ，from website
+# get proxies from website
 proxies_list_website = pc.get_proxies_from_website()
-# at the same time , get some proxies from localhost lldatabase
+# at the same time , get other proxies from local database
 table_names_proxies = 'proxy_other_source,proxy_you_dai_li'
 proxies_list_local = list()
 for proxies_t_n in table_names_proxies.split(','):
     dbs = DBService(dbName='base', tableName=proxies_t_n, **connect_dict)
     proxies_list_local += map(lambda x: x[0], dbs.getData(var='proxy_port'))
 proxies_list_total = list(set(proxies_list_website + proxies_list_local))
+# first round test proxies
 proxies_list_ok = pt.test_from_list(proxies_list_total, 3)
 
 
@@ -93,6 +93,9 @@ def crawled_urls():
         )
 
 
+crawled_urls = crawled_urls()
+
+
 def gen_url():
     def url_join(t):
         if '.html' in t:
@@ -121,6 +124,9 @@ def gen_url():
             )
     )
     return list(set(filter(lambda x: 1 if x else 0, href_s)))
+
+
+all_urls = gen_url()
 
 
 def download_page(url):
@@ -163,40 +169,44 @@ def page_parse(url):
     return __page_parse(content, url)
 
 
-if __name__ == '__main__':
-    queue_urls = Queue(0)
-    queue_status = Queue(0)
-    crawled_url = crawled_urls()
-    gen_urls = gen_url()
-    url_start = list(set(gen_urls).difference(set(crawled_url)))
-    for url in url_start:
-        queue_urls.put(url)
+class Aliexpress_Company_Contact_Information_Spider(object):
+    def __init__(self):
+        self.queue_urls = Queue(0)
+        self.crawled_url = crawled_urls
+        self.gen_urls = all_urls
+        self.url_start = list(set(self.gen_urls).difference(set(self.crawled_url)))
 
+    def __url_putting(self):
+        for url in self.url_start:
+            self.queue_urls.put(url)
 
-    def _run():
-        while queue_urls.qsize():
-            url = queue_urls.get()
+    def single_thread(self):
+        while self.queue_urls.qsize():
+            url = self.queue_urls.get()
             try:
                 page_data = page_parse(url)
-                time.sleep(abs(random.gauss(3, 1)))
+                # time.sleep(abs(random.gauss(3, 1)))
                 print page_data
                 db_server.data2DB(data=page_data)
             except Exception, e:
                 print e.message
-                queue_urls.put(url)
-                queue_status.put('err')
-                # if queue_status.qsize() % 66
+                self.queue_urls.put(url)
 
-
-    def main(thread_count):
-        __run_thread_pool = list()
+    def __gen_thread_and_run(self, thread_count=3):
+        run_thread_pool = list()
         while thread_count > 0:
-            __run_thread_pool.append(threading.Thread(target=_run))
+            run_thread_pool.append(threading.Thread(target=self.single_thread))
             thread_count -= 1
-        for task in __run_thread_pool:
+        for task in run_thread_pool:
             task.start()
-        for task in __run_thread_pool:
+        for task in run_thread_pool:
             task.join()
 
+    def crawl(self, thread_count=3):
+        self.__url_putting()
+        self.__gen_thread_and_run(thread_count=thread_count)
 
-    main(thread_count=1)
+
+if __name__ == '__main__':
+    spider = Aliexpress_Company_Contact_Information_Spider()
+    spider.crawl(3)

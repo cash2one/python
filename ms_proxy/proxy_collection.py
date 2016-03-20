@@ -64,6 +64,8 @@ class Down_Loader(Thread):
         self.__url_base = self.__url_parse_d.get('scheme') + '://' \
                           + self.__url_parse_d.get('netloc')
         self.__url_pool = {url_start}
+        # if python version is 2.6 , using next statement
+        # self.__url_pool = set([url_start])
         self.__url_pool_crawled = set()
         self.__max_page = config_dictionary.get(url_start).get('max_page_count')
 
