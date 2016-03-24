@@ -8,7 +8,7 @@ from ms_spider_fw.DBSerivce import DBService
 import ms_proxy.proxy_collection as pc
 import ms_proxy.proxy_test as pt
 from pyquery.pyquery import PyQuery
-from Queue import Queue
+from Queue import Queue, LifoQueue
 import requests
 import time
 import re
@@ -30,25 +30,27 @@ connect_dict = {
 # compile regular expression pattern
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
-# get proxies from website
-proxies_list_website = pc.get_proxies_from_website()
-# at the same time , get other proxies from local database
-table_names_proxies = 'proxy_other_source,proxy_you_dai_li'
-proxies_list_local = list()
-for proxies_t_n in table_names_proxies.split(','):
-    dbs = DBService(dbName='base', tableName=proxies_t_n, **connect_dict)
-    proxies_list_local += map(lambda x: x[0], dbs.getData(var='proxy_port'))
-proxies_list_total = list(set(proxies_list_website + proxies_list_local))
-# first round test proxies
-proxies_list_ok = pt.test_from_list(proxies_list_total, 3)
+proxies_queue = LifoQueue(0)
 
 
-# testing proxy for using
-def gen_proxy():
-    proxy_port = random.choice(proxies_list_ok)
-    if pt.test(proxy_port, timeout=3):
-        return proxy_port
-    return gen_proxy()
+def proxy_collection():
+    # get proxies from website
+    proxies_list_website = pc.get_proxies_from_website()
+    # at the same time , get other proxies from local database
+    table_names_proxies = 'proxy_other_source,proxy_you_dai_li'
+    proxies_list_local = list()
+    for proxies_t_n in table_names_proxies.split(','):
+        dbs = DBService(dbName='base', tableName=proxies_t_n, **connect_dict)
+        proxies_list_local += map(lambda x: x[0], dbs.getData(var='proxy_port'))
+    return list(set(proxies_list_website + proxies_list_local))
+    # first round test proxies
+
+
+def proxies_test():
+    proxies_list_total = proxy_collection()
+    while True:
+        for proxy in pt.test_from_list(proxies_list_total, 5):
+            proxies_queue.put(proxy)
 
 
 # database link object
@@ -131,16 +133,19 @@ all_urls = gen_url()
 
 def download_page(url):
     _cookie = gen_cookie()
-    _proxy = gen_proxy()
+    _proxy = proxies_queue.get(timeout=36000)
     print "--PROXY => %s ; COOKIES => %s" % (_proxy, _cookie.get('ali_apache_id'))
-    r = requests.get(url, cookies=_cookie, headers=_headers,
-                     proxies={'http': 'http://%s' % _proxy}, timeout=3)
-    response = r.content
-    r.close()
-    return response
+    try:
+        r = requests.get(url, cookies=_cookie, headers=_headers,
+                         proxies={'http': 'http://%s' % _proxy}, timeout=5)
+        response = r.content
+        r.close()
+        return response, _proxy
+    except Exception:
+        return None, _proxy
 
 
-def __page_parse(content, url):
+def page_parse(content, url):
     d = PyQuery(content)
     # print content[:200].encode('utf8')
     shop_name = d.find('.shop-name>a').text()
@@ -164,9 +169,9 @@ def __page_parse(content, url):
     ]
 
 
-def page_parse(url):
-    content = download_page(url)
-    return __page_parse(content, url)
+def __page_parse(url):
+    content, proxy = download_page(url)
+    return page_parse(content, url)
 
 
 class Aliexpress_Company_Contact_Information_Spider(object):
@@ -180,22 +185,26 @@ class Aliexpress_Company_Contact_Information_Spider(object):
         for url in self.url_start:
             self.queue_urls.put(url)
 
-    def single_thread(self):
+    def single_thread(self, lock):
         while self.queue_urls.qsize():
             url = self.queue_urls.get()
+            content, proxy = download_page(url)
             try:
-                page_data = page_parse(url)
-                # time.sleep(abs(random.gauss(3, 1)))
+                page_data = page_parse(content, url)
+                proxies_queue.put(proxy)
                 print page_data
                 db_server.data2DB(data=page_data)
             except Exception, e:
                 print e.message
                 self.queue_urls.put(url)
 
-    def __gen_thread_and_run(self, thread_count=3):
+    def __gen_thread_and_run(self, thread_lock, thread_count=3):
         run_thread_pool = list()
+        run_thread_pool.append(threading.Thread(target=proxies_test))
         while thread_count > 0:
-            run_thread_pool.append(threading.Thread(target=self.single_thread))
+            run_thread_pool.append(
+                    threading.Thread(target=self.single_thread, args=(thread_lock,),
+                                     name='SPIDER_' + str(thread_count)))
             thread_count -= 1
         for task in run_thread_pool:
             task.start()
@@ -204,9 +213,10 @@ class Aliexpress_Company_Contact_Information_Spider(object):
 
     def crawl(self, thread_count=3):
         self.__url_putting()
-        self.__gen_thread_and_run(thread_count=thread_count)
+        thread_lock = threading.Lock()
+        self.__gen_thread_and_run(thread_count=thread_count, thread_lock=thread_lock)
 
 
 if __name__ == '__main__':
     spider = Aliexpress_Company_Contact_Information_Spider()
-    spider.crawl(3)
+    spider.crawl(50)

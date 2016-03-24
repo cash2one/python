@@ -147,5 +147,4 @@ if __name__ == '__main__':
     # proxy_port_list = get_proxies_from_website()
     # for proxy_port in proxy_port_list:
     #     print proxy_port
-    with open('ms_proxy_config','wb')as f:
-        f.write('yes,it,is my config text')
+    pass
