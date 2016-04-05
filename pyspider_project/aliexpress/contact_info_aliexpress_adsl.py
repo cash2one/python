@@ -35,13 +35,13 @@ g_adsl_account = {"name": "adsl",
                   "username": "0512...",
                   "password": "..."}
 
-
 class Adsl(object):
     # __init__ : name: adsl名称
     def __init__(self):
         self.name = g_adsl_account["name"]
         self.username = g_adsl_account["username"]
         self.password = g_adsl_account["password"]
+
 
     # set_adsl : 修改adsl设置
     def set_adsl(self, account):
