@@ -51,6 +51,8 @@ def getData(path):
     return map(lambda x: x + [spider_week, spider_time.__str__()], data_t)
 
 
+
+
 def putDataIntoDB(path):
     data = getData(path=path)
     dbs = DBService(dbName='elec_platform', tableName='tmall_baseinfo_weekly_2016')
