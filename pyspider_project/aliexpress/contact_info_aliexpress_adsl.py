@@ -5,8 +5,6 @@
 # Author:yangmingsong
 
 from ms_spider_fw.DBSerivce import DBService
-import ms_proxy.proxy_collection as pc
-import ms_proxy.proxy_test as pt
 from pyquery.pyquery import PyQuery
 from Queue import Queue, LifoQueue
 import requests
@@ -17,17 +15,6 @@ import threading
 import random
 import os
 
-# config_text
-db_name = 'alibaba'
-table_name = 'contact_info_aliexpress_com'
-table_title = 'shop_url,contact_detail,crawl_time'
-connect_dict = {
-    'host': 'localhost',  # '10.118.187.12',
-    'user': 'root',  # 'admin',
-    'passwd': "",  # 'admin',
-    'charset': 'utf8'
-}
-
 # compile regular expression pattern
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
 
@@ -35,13 +22,21 @@ g_adsl_account = {"name": "adsl",
                   "username": "0512...",
                   "password": "..."}
 
+
+def info_from_local_dist(file_name, column_num):
+    with open("C:/aliexpress/" + file_name + ".txt", 'r')as f:
+        data_base = f.read()
+    return map(lambda x: x.split('\t')[column_num - 1],
+               filter(lambda y: 1 if y else 0, data_base.split('\n'))
+               )
+
+
 class Adsl(object):
     # __init__ : name: adsl名称
     def __init__(self):
         self.name = g_adsl_account["name"]
         self.username = g_adsl_account["username"]
         self.password = g_adsl_account["password"]
-
 
     # set_adsl : 修改adsl设置
     def set_adsl(self, account):
@@ -68,9 +63,6 @@ class Adsl(object):
             time.sleep(10)
             self.connect()
 
-
-# database link object
-db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 
 _headers = {
     # 'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0)',
@@ -106,14 +98,19 @@ def gen_cookie():
 
 
 def crawled_urls():
-    if not db_server.isTableExist():
-        db_server.createTable(tableTitle=table_title.split(','))
-        return []
-    else:
-        return map(
-                lambda x: x.rsplit('/', 1)[0] + '/contactinfo/' + x.rsplit('/', 1)[1] + '.html',
-                map(lambda x: x[0], db_server.getData(var='shop_url'))
-        )
+    return map(
+            lambda x: x.rsplit('/', 1)[0] + '/contactinfo/' + x.rsplit('/', 1)[1] + '.html',
+            info_from_local_dist(
+                    file_name='contact_info_aliexpress_com', column_num=2)
+    )
+
+
+def all_urls_contain_crawled_url():
+    return map(
+            lambda x: x.rsplit('/', 1)[0] + '/contactinfo/' + x.rsplit('/', 1)[1] + '.html',
+            info_from_local_dist(
+                    file_name='aliexpress_temp', column_num=2)
+    )
 
 
 crawled_urls = crawled_urls()
@@ -139,8 +136,7 @@ def gen_url():
         else:
             return None
 
-    db_g = DBService(dbName=db_name, tableName='aliexpress_temp', **connect_dict)
-    href_list_t = db_g.getData(var='store_href', distinct=True)
+    href_list_t = all_urls_contain_crawled_url()
     href_s = map(
             lambda t: change_par(t), map(
                     lambda x: x[0], href_list_t
@@ -210,7 +206,7 @@ class Aliexpress_Company_Contact_Information_Spider(object):
             try:
                 page_data = page_parse(content, url)
                 print page_data
-                db_server.data2DB(data=page_data)
+                # db_server.data2DB(data=page_data)
             except Exception, e:
                 print e.message
                 self.queue_urls.put(url)
