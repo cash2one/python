@@ -438,7 +438,7 @@ if __name__ == '__main__':
     print('Start')
     # proxy_test(r'C:/Users/613108/Desktop/proxy_test.html')
 
-    # main_GetKeyWord()
+    # main_get_keyword()
 
     main_GetShopList(200)
 

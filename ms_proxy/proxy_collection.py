@@ -12,28 +12,33 @@ from pyquery.pyquery import PyQuery
 from Queue import Queue
 import threading
 
+try:
+    import proxy_configure
+except ImportError:
+    proxy_configure.config_dictionary = None
+
 # config text match to each proxy website
 # make sure the website contain proxy_port in base page_source
-config_dictionary = {
+config_dictionary_default = {
     'http://www.ip84.com/gw': {
         'css_selector_url': '.pagination>a',
         'basejoin': True,
-        'max_page_count': 50
+        'max_page_count': 20
     },
     'http://www.ip84.com/gn': {
         'css_selector_url': '.pagination>a',
         'basejoin': True,
-        'max_page_count': 50
+        'max_page_count': 20
     },
     "http://www.ip84.com/pn": {
         'css_selector_url': '.pagination>a',
         'basejoin': True,
-        'max_page_count': 50
+        'max_page_count': 20
     },
     "http://www.mimiip.com/gngao/1": {
         'css_selector_url': '.pagination>a',
         'basejoin': True,
-        'max_page_count': 50
+        'max_page_count': 20
     },
     "http://www.mimiip.com/gnpu/": {
         'css_selector_url': '.pagination>a',
@@ -46,6 +51,11 @@ config_dictionary = {
         'max_page_count': 1
     }
 }
+
+if proxy_configure.config_dictionary:
+    config_dictionary = dict(
+            proxy_configure.config_dictionary.items() + config_dictionary_default.items()
+    )
 
 # re pattern
 pattern_ip_address = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d]):\d{1,5}')
@@ -89,7 +99,7 @@ class Down_Loader(Thread):
             print url
             r = None
             try:
-                r = requests.get(url, timeout=1).content
+                r = requests.get(url, timeout=1, verify=False).content
             except Exception, e:
                 print e.message
                 self.__url_pool.add(url)
@@ -148,4 +158,5 @@ if __name__ == '__main__':
     # proxy_port_list = get_proxies_from_website()
     # for proxy_port in proxy_port_list:
     #     print proxy_port
-    pass
+    with open('ms_proxy_config', 'wb')as f:
+        f.write('yes,it,is my config text')

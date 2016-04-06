@@ -22,7 +22,7 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 
 def crawled_data():
     return map(
-            lambda x: x[0], db_server.getData(var='contact_detail')
+            lambda x: x[0], db_server.getData(var='contact_detail')[17412:]
     )
 
 
@@ -35,6 +35,7 @@ def extrac(x):
             lambda x: '' if x == None else x,
             [
                 d.get('shop_name'),
+                d.get('contact_url'),
                 d.get('open_time'),
                 d.get('Company Name:'),
                 d.get('contact_person'),
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     db_server.createTable(
         tableTitle=[
             'shop_name',
+            'contact_info_url',
             'open_time',
             'company_name',
             'contact_person',

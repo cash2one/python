@@ -83,7 +83,7 @@ def test_from_url(url, timeout=1):
     or like this: proxy_list = test_from_url(url , timeout=3)
     """
     patt_pp = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d]):\d{1,5}')
-    t = requests.get(url).text
+    t = requests.get(url,verify=True).text
     txt = ':'.join(pq(t).text().split(' '))
     proxy_port = list(set(re.findall(patt_pp, txt)))
     return test_from_list(proxy_list=proxy_port, timeout=timeout)
