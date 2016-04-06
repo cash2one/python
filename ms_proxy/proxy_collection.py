@@ -13,9 +13,9 @@ from Queue import Queue
 import threading
 
 try:
-    import proxy_configure
+    import proxy_configure_
 except ImportError:
-    proxy_configure.config_dictionary = None
+    proxy_configure_.config_dictionary = None
 
 # config text match to each proxy website
 # make sure the website contain proxy_port in base page_source
@@ -52,9 +52,9 @@ config_dictionary_default = {
     }
 }
 
-if proxy_configure.config_dictionary:
+if proxy_configure_.config_dictionary:
     config_dictionary = dict(
-            proxy_configure.config_dictionary.items() + config_dictionary_default.items()
+            proxy_configure_.config_dictionary.items() + config_dictionary_default.items()
     )
 
 # re pattern
