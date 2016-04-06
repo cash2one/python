@@ -12,13 +12,11 @@ import re
 import json
 import threading
 import random
+import urllib2
 
 # compile regular expression pattern
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
-
-g_adsl_account = {"name": "adsl",
-                  "username": "0512...",
-                  "password": "..."}
+result_queue = Queue(0)
 
 
 def info_from_local_dist(file_name, column_num):
@@ -32,9 +30,10 @@ def info_from_local_dist(file_name, column_num):
 _headers = {
     # 'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0)',
     'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586",
-    # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US;q=0.5,en;q=0.3',
     'Accept-Encoding': 'gzip, deflate',
+    'Referer': 'http://www.google.com',
     'Connection': 'keep-alive'
 }
 
@@ -55,11 +54,6 @@ def gen_cookie():
             map(lambda x: (x.split('=', 1)[0].strip(), x.split('=', 1)[1]),
                 _cookie_d.get(random.randint(1, len(_cookie_d))).split(';'))
     )
-
-
-# for testing cookies
-# _cookie_t = """ali_apache_id=101.105.37.177.1438705554786.260685.7; xman_us_f=x_l=1&x_locale=en_US&no_popup_today=n&x_user=US|yang|young|ifm|768474461&last_popup_time=1457712623354; aep_usuc_f=region=US&site=glo&b_locale=en_US&isb=y&isfm=y&c_tp=USD&x_alimid=768474461&reg_ver=new; intl_common_forever=rL5z+pTJEMOqSRr7MKiguZ9Lihf5oTyQRXJT8FtnVwNdRxp5uU1O5Q==; xman_f=6h/npGRCn8PCxoOVd+ue381gNqVAQGBg6f+jrlxyGbjxI6OUURdWZejPr1msspHIQEwM8SJpZNIUm14F+GhdzSfktjgh5/GMO5yA+qU1wD2owvJzr3HKslkoZaZcsKtcNz3AvPuo9SeiXrF7jgd1QXPY/UKDRO0nX4/1v6rGB6aWdfYMKt318vLhWIrmQrZQ4oheJxWqlJvixq92djQGQqnIfqMEtiGiYak3o51oWkCRF4N81S9LxC18FPxXHwjYyIAoUDWv7BVeykIDtRJtbS5sdMne0gc2pupQJx9sdHEJEr3GehcGxdpUJiYRC6lIX+3y8vior2X4xrdYH2agXOY9VFF5GExTbAdNQxhr6oBDhNkL/lM42Ee7JgqXK4tTRVpXQ+XekMIymgMmxR0oVyJ4BNOOlrLb; ali_beacon_id=220.152.150.99.1433075894474.773074.1; cna=PDviDaz2VHICAdyYlirqiemC; __utma=3375712.324010086.1438705507.1458384428.1458388505.11; l=AgAA/C6h38RBbszMOKKq5h4L8IDS7ORb; aep_history=keywords%5E%0Akeywords%09%0A%0Aproduct_selloffer%5E%0Aproduct_selloffer%0932328512449%0932320594174%0932379793562%0932312953658%0932602972005; _umdata=8D5462A7710B16F8D1DE8DF86205FD525C80C1F3E9ED159353D27A988B78E33A486FC569B0FB883C6705A9C6F940A638B43E266F5C7442047DCA4915D89FB7108E94AD13019CB44D; __utmz=3375712.1458388505.11.2.utmcsr=aliexpress.com|utmccn=(referral)|utmcmd=referral|utmcct=/category/200003482/dresses.html; _ga=GA1.2.324010086.1438705507; ali_apache_track=mt=1|ms=|mid=us1149212384ijsz; isg=580CC597EE0CF236F5283A13388FEF5B; d_ab_f=f12887f4ca9643129dfe6be772bb1c8d; aep_common_f=q4D4WHUu8LURVHlV+ZWTmdw4tcu1GZaUE+q0QzAaL+l3PdjHUgygiQ==; JSESSIONID=2848429EB23B3C6BB077C066C1B1923F; acs_usuc_t=acs_rt=243129bb6ae3438c9a9bfc4c59b82a31; xman_t=yPdVpMwygp/1uJRRe/aRCOVu7qxTo0j4NxOaYy1Px7+qxl/YeFLljop+D4dXpySUtoLvePze6njxvzuEHviXYvtqd7EcYDCOUJ+GOEwyBeb/R+fsYaSOILTOMizYulrgJkbq8zl6+RdWiTldpJAiqyIXsyk8bOy0OKfiyjCfT+5NqCvCGraThzyhQiTkQCaNGuHol2OAe5xLIZWKP08FwdjqX9RnxhBLMniaDJNjufN8RukWlkIXAfqxvLLM5Z37a1kIcQ4Uut26XfxPJhpzMod9sv8GNlvNdTibgvAqL5HQHh+MtWevinhVLJX2NtXdM/WVapXaLTjtQf71x7yMwWVFjPF9GE2NXenpinDrg7oRy3oBM7FwYpvqiy28LItoRKlXzL8Xmf/EwsTEpX7IS9Fi0+7Ts6yWhL3+MdA1grGNUsltGr9a5kS/yZiF4MmdUNlbsEp4uAcpjT5gcMyDxXnmDz/RDHHL1ayvGndWISTpF6SNqd6LO+gd76Hm3e+uo6WX3VvNCRWzC/hpZ92mZ2RHOpCuvZvYKKskYSCF3HwoZANaLFIk+g04LqADCTPjQUE+jm1UG/l3VbrhzQ8wkOzdBJ4/cJ29iTj1I67dcgGVs9F795wUOu8Qcux/bnOp; intl_locale=en_US; __utmc=3375712; _mle_tmp0=eNrz4A12DQ729PeL9%2FV3cfUx8KvOTLFSsjQ2dzRxczUyMHI2dXU1dLF0dDV1MXUysDA3M3BydXZS0kkusTI0MbUwtjCxMDMyMDTWSUxGE8itsDKojQIApWsX%2Fw%3D%3D; ali_apache_tracktmp=W_signed=Y; u_info=PzPojPc60gU9BgN7gGdVe/HeSj7zFohb8RmPP904RxI=; __utmb=3375712.7.10.1458388505; xman_us_t=x_lid=us1149212384ijsz&sign=y&x_user=tMwQ8hJci/ZHhxqofsUOYS/G9Uo5udG12uV1XaI35NY=&ctoken=ibova_l11_rq&need_popup=y&l_source=aliexpress; aep_usuc_t=ber_l_fg=A0; __utmt=1; _gat=1"""
-# _cookie = dict(map(lambda x: (x.split('=', 1)[0].strip(), x.split('=', 1)[1]),_cookie_t.split(';')))
 
 
 def crawled_urls():
@@ -110,9 +104,14 @@ all_urls = gen_url()
 
 def download_page(url):
     _cookie = gen_cookie()
+    _header = _headers
+    _header['Referer'] = url.replace('/contactinfo', '')
+    # print(_header.get('Referer'))
     try:
-        r = requests.get(url, cookies=_cookie, headers=_headers, timeout=5)
+        r = requests.get(url, headers=_header, timeout=5)  # , cookies=_cookie
+        # r= urllib2.urlopen(url,timeout=1)
         response = r.content
+        # response = r.read()
         r.close()
         return response
     except Exception:
@@ -148,6 +147,21 @@ def __page_parse(url):
     return page_parse(content, url)
 
 
+def data_to_txt():
+    while True:
+        t = result_queue.qsize()
+        rsu_list = list()
+        if t:
+            while t != 0:
+                rsu_list.append(result_queue.get())
+                t -= 1
+            rsu_ok = '\n'.join(rsu_list)
+            with open('C:/aliexpress/contact_info_aliexpress_com.txt', 'a')as f:
+                f.write('\n')
+                f.write(rsu_ok)
+        time.sleep(300)
+
+
 class Aliexpress_Company_Contact_Information_Spider(object):
     def __init__(self):
         self.queue_urls = Queue(0)
@@ -165,14 +179,16 @@ class Aliexpress_Company_Contact_Information_Spider(object):
             content = download_page(url)
             try:
                 page_data = page_parse(content, url)
+                result_queue.put('"888888"' + '\t' + '\t'.join(map(lambda x: '"' + x + '"', page_data)))
                 print page_data
                 # db_server.data2DB(data=page_data)
             except Exception, e:
-                print e.message
+                # print e.message
                 self.queue_urls.put(url)
 
     def __gen_thread_and_run(self, thread_lock, thread_count=3):
         run_thread_pool = list()
+        run_thread_pool.append(threading.Thread(target=data_to_txt))
         while thread_count > 0:
             run_thread_pool.append(
                     threading.Thread(target=self.single_thread, args=(thread_lock,),
@@ -191,4 +207,4 @@ class Aliexpress_Company_Contact_Information_Spider(object):
 
 if __name__ == '__main__':
     spider = Aliexpress_Company_Contact_Information_Spider()
-    spider.crawl(4)
+    spider.crawl(5)
