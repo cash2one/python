@@ -4,7 +4,6 @@
 # Project:contact_info_aliexpress
 # Author:yangmingsong
 
-from ms_spider_fw.DBSerivce import DBService
 from pyquery.pyquery import PyQuery
 from Queue import Queue, LifoQueue
 import requests
@@ -13,7 +12,6 @@ import re
 import json
 import threading
 import random
-import os
 
 # compile regular expression pattern
 pattern_contact_info = re.compile('<th>(.+?)</th>.*?<td>(.+?)</td>', re.DOTALL)
@@ -26,42 +24,9 @@ g_adsl_account = {"name": "adsl",
 def info_from_local_dist(file_name, column_num):
     with open("C:/aliexpress/" + file_name + ".txt", 'r')as f:
         data_base = f.read()
-    return map(lambda x: x.split('\t')[column_num - 1],
+    return map(lambda x: x.split('\t')[column_num - 1].replace('"', ''),
                filter(lambda y: 1 if y else 0, data_base.split('\n'))
                )
-
-
-class Adsl(object):
-    # __init__ : name: adsl名称
-    def __init__(self):
-        self.name = g_adsl_account["name"]
-        self.username = g_adsl_account["username"]
-        self.password = g_adsl_account["password"]
-
-    # set_adsl : 修改adsl设置
-    def set_adsl(self, account):
-        self.name = account["name"]
-        self.username = account["username"]
-        self.password = account["password"]
-
-    # connect : 宽带拨号
-    def connect(self):
-        cmd_str = "rasdial %s %s %s" % (self.name, self.username, self.password)
-        os.system(cmd_str)
-        time.sleep(5)
-
-    # disconnect : 断开宽带连接
-    def disconnect(self):
-        cmd_str = "rasdial %s /disconnect" % self.name
-        os.system(cmd_str)
-        time.sleep(5)
-
-    # reconnect : 重新进行拨号
-    def reconnect(self):
-        while True:
-            self.disconnect()
-            time.sleep(10)
-            self.connect()
 
 
 _headers = {
@@ -106,11 +71,8 @@ def crawled_urls():
 
 
 def all_urls_contain_crawled_url():
-    return map(
-            lambda x: x.rsplit('/', 1)[0] + '/contactinfo/' + x.rsplit('/', 1)[1] + '.html',
-            info_from_local_dist(
-                    file_name='aliexpress_temp', column_num=2)
-    )
+    return info_from_local_dist(
+            file_name='aliexpress_temp', column_num=2)
 
 
 crawled_urls = crawled_urls()
@@ -138,9 +100,7 @@ def gen_url():
 
     href_list_t = all_urls_contain_crawled_url()
     href_s = map(
-            lambda t: change_par(t), map(
-                    lambda x: x[0], href_list_t
-            )
+            lambda t: change_par(t), href_list_t
     )
     return list(set(filter(lambda x: 1 if x else 0, href_s)))
 
@@ -213,8 +173,6 @@ class Aliexpress_Company_Contact_Information_Spider(object):
 
     def __gen_thread_and_run(self, thread_lock, thread_count=3):
         run_thread_pool = list()
-        __adsl = Adsl()
-        run_thread_pool.append(threading.Thread(target=__adsl.reconnect()))
         while thread_count > 0:
             run_thread_pool.append(
                     threading.Thread(target=self.single_thread, args=(thread_lock,),
