@@ -9,10 +9,9 @@ from ms_spider_fw.DBSerivce import DBService
 import time
 import json
 import re
-import sys
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 # config_text
 # when start a spider,you should modify the next config text first

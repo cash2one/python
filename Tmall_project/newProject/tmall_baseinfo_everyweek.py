@@ -32,18 +32,25 @@ def temp_data(path):
     data_t = pandas.concat(name_space)
     data = data_t.drop_duplicates(['href'])
     data = data.values.tolist()
-    return [map(lambda x: '' if x is np.nan else x, t) for t in data], data_t.columns.tolist()
+    return [map(
+            lambda x: '' if x is np.nan else x, t
+    ) for t in data
+            ], data_t.columns.tolist()
 
 
 def getData(path):
     data, titleNeedToHandle = temp_data(path)
-    indexToHandleData = [0, 1, 14, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 20, 22, 23, 25, 26]
+    indexToHandleData = [
+        0, 1, 14, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 19, 20, 22, 23, 25, 26
+    ]
 
     def temp_f(x):
         return map(lambda i: x[i], indexToHandleData)
 
     data_t = [temp_f(x) for x in data]
     return map(lambda x: x + [spider_week, spider_time.__str__()], data_t)
+
+
 
 
 def putDataIntoDB(path):
