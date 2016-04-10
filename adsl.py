@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 import os
 import time
+import random
 
 g_adsl_account = {"name": "adsl",
-                  "username": "0512...",
-                  "password": "..."}
+                  "username": "99392214",
+                  "password": "123456"}
 
 
 class Adsl(object):
@@ -24,17 +25,23 @@ class Adsl(object):
     def connect(self):
         cmd_str = "rasdial %s %s %s" % (self.name, self.username, self.password)
         os.system(cmd_str)
-        time.sleep(5)
+        # time.sleep(5)
 
     # disconnect : 断开宽带连接
     def disconnect(self):
         cmd_str = "rasdial %s /disconnect" % self.name
         os.system(cmd_str)
-        time.sleep(5)
+        # time.sleep(5)
 
     # reconnect : 重新进行拨号
     def reconnect(self):
         while True:
             self.disconnect()
-            time.sleep(10)
+            time.sleep(abs(random.gauss(5, 3)))
             self.connect()
+            time.sleep(abs(random.gauss(3, 3)))
+
+
+if __name__ == '__main__':
+    adsl = Adsl()
+    adsl.reconnect()

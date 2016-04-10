@@ -11,7 +11,7 @@ import re
 from pyquery.pyquery import PyQuery
 from Queue import Queue
 import threading
-
+import pymysql
 # config text match to each proxy website
 # make sure the website contain proxy_port in base page_source
 config_dictionary = {

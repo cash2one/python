@@ -37,3 +37,11 @@
 with open('d:/black_proxy.txt','r')as f:
     t=f.read()
 print len(t.split('\n'))
+
+with open('c:\aliexpress\contact_info_aliexpress_com.txt','r')as f:
+    data_base=f.read()
+data_fir_step = filter(lambda x: 1 if x else 0, data_base.split('\n'))
+print 'Total record is %s' % len(data_fir_step)
+data_sec_step = filter(lambda x: 1 if x.split('\t')[0] == '"888888"' else 0, data_fir_step)
+print 'Total "888888" record is %s' % len(data_sec_step)
+print data_sec_step[-1]
