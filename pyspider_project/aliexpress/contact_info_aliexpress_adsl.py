@@ -241,6 +241,8 @@ class Aliexpress_Company_Contact_Information_Spider(object):
                 # print e.message
                 self.queue_urls.put(url)
 
+
+
     def __gen_thread_and_run(self, thread_lock, thread_count=3):
         run_thread_pool = list()
         run_thread_pool.append(threading.Thread(target=data_to_mysql))
