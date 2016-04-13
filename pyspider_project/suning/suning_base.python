@@ -26,6 +26,8 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 
+pat_pagenumbers = re.compile('param.pageNumbers = "(\d+?)";')
+
 
 class Handler(BaseHandler):
     crawl_config = {
@@ -39,7 +41,7 @@ class Handler(BaseHandler):
     def on_start(self):
         self.crawl(url_start, callback=self.step_first, proxy=False, retries=10)
 
-    @config(age=2 * 24 * 60 * 60)
+    # @config(age=2 * 24 * 60 * 60)
     def step_first(self, response):
         d = response.doc
         for t in d('.listLeft dd a').items():
@@ -52,7 +54,12 @@ class Handler(BaseHandler):
     @config(age=15 * 24 * 60 * 60)
     def step_second(self, response):
         d = response.doc
-        page_sum = int(d('#pageLast').text())
+        # page_sum = int(d('#pageLast').text())
+        # rebuild on 2016-04-13
+        try:
+            page_sum = int(re.findall(pat_pagenumbers, response.text)[0])
+        except Exception:
+            page_sum = 1
         id_t = response.save['category_id']
         url_s = 'http://list.suning.com/emall/showProductList.do?ci='
         url_m = '&pg=03&cp='
@@ -65,22 +72,32 @@ class Handler(BaseHandler):
     def my_result(self, response):
         d = response.doc
         temp = list(d('.wrap').items())
-        cate={'category':response.save}
+        cate = {'category': response.save}
         detail = {}
         for t in temp:
             dict_t = {
-                'title': t('.i-name .sellPoint').attr('title'),
-                'href': t('.i-name .sellPoint').attr('href'),
-                'img_src': t('.err-product').attr('src2'),
-                'sku': t('.price.fl').attr('datasku'),
-                'comment_sum': re.findall(r'\d+', t('.com-cnt.fl').text())[0],
+                # 'title': t('.i-name .sellPoint').attr('title'),
+                # 'href': t('.i-name .sellPoint').attr('href'),
+                # 'img_src': t('.err-product').attr('src2'),
+                # 'sku': t('.price.fl').attr('datasku'),
+                # 'comment_sum': re.findall(r'\d+', t('.com-cnt.fl').text())[0],
+                # 'val': t('.b-small').attr('val'),
+                # 'seller_count': re.findall(r'\d+', t('.i-seller.font-pale>a').text())[0] if t(
+                #         '.i-seller.font-pale>a').text() else '',
+                # 'sellers_page_url': t('.i-seller.font-pale>a').attr('href')
+                # rebuild on 2016-04-13
+                'title': t('.sellPoint').attr('title'),
+                'href': t('.sellPoint').attr('href'),
+                'img_src': t('.search-loading').attr('src2'),
+                'sku': t('.prive.price').attr('datasku'),
+                'comment_sum': t('.com-cnt a').text(),
                 'val': t('.b-small').attr('val'),
-                'seller_count': re.findall(r'\d+', t('.i-seller.font-pale>a').text())[0] if t(
-                        '.i-seller.font-pale>a').text() else '',
-                'sellers_page_url': t('.i-seller.font-pale>a').attr('href')
+                'seller_count': re.findall(r'\d+', t('.seller>a').text())[0]
+                if t('.seller>a').text() else '',
+                'sellers_page_url': t('.seller>a').attr('href')
             }
             detail[temp.index(t)] = dict_t
-        detail_ok=dict(detail.items()+cate.items())
+        detail_ok = dict(detail.items() + cate.items())
         crawl_time = time.strftime('%Y-%m-%d %X', time.localtime())
         return [
             response.url,

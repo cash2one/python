@@ -22,7 +22,7 @@ db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 
 def crawled_data():
     return map(
-            lambda x: x[0], db_server.getData(var='contact_detail')[17412:]
+            lambda x: x[0], db_server.getData(var='contact_detail')[24466:]
     )
 
 

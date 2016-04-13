@@ -12,7 +12,7 @@ import numpy as np
 
 # config text:
 # crawled_date should be modified before use
-spider_time = datetime.date(2016, 2, 29)
+spider_time = datetime.date(2016, 4, 11)
 spider_week = spider_time.strftime('%U')
 
 
@@ -34,8 +34,7 @@ def temp_data(path):
     data = data.values.tolist()
     return [map(
             lambda x: '' if x is np.nan else x, t
-    ) for t in data
-            ], data_t.columns.tolist()
+    ) for t in data], data_t.columns.tolist()
 
 
 def getData(path):
@@ -51,8 +50,6 @@ def getData(path):
     return map(lambda x: x + [spider_week, spider_time.__str__()], data_t)
 
 
-
-
 def putDataIntoDB(path):
     data = getData(path=path)
     dbs = DBService(dbName='elec_platform', tableName='tmall_baseinfo_weekly_2016')
@@ -60,4 +57,6 @@ def putDataIntoDB(path):
 
 
 if __name__ == '__main__':
+    print "*" * 10 + "START" + "*" * 10
     putDataIntoDB(path=r'D:\spider\tmall\%s' % spider_time.__str__())
+    print "*" * 10 + "END" + "*" * 10
