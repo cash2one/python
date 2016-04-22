@@ -9,6 +9,10 @@ from ms_spider_fw.DBSerivce import DBService
 import time
 import json
 import re
+import threading
+
+_lock = threading._allocate_lock()
+S = set()
 
 # config_text
 # when start a spider,you should modify the next config text first
@@ -30,6 +34,7 @@ pat_word = re.compile('\w+:')
 pat_score = re.compile('<span class="score-desc">(.+?)<.+?"number">(.+?)<.+?<'
                        'i class="(\w+?)">.+?"percent">(.+?)<', re.DOTALL)
 pat_par = re.compile('<li title=.+?>(.+?)</li>')
+pat_sku = re.compile('\d+')
 
 
 class Handler(BaseHandler):
@@ -56,21 +61,15 @@ class Handler(BaseHandler):
         for t in d('.p-num>a').items():
             self.crawl(t.attr.href, callback=self.step_first, retries=100)
         for t in d('.gl-i-wrap.j-sku-item .p-name a').items():
-            self.crawl(t.attr.href, callback=self.step_second, retries=100)
-            # for t in d('.gl-i-wrap.j-sku-item').items():
-            #     sku_id = t('.p-focus a').attr('data-sku')
-            #     sku_name = t('.p-name em').text()
-            #     comment_list_url = 'http://club.jd.com/productpage/p-' + sku_id + \
-            #                        '-s-0-t-3-p-0.html'
-            #     self.crawl(comment_list_url, callback=self.step_second, retries=100,
-            #                save={
-            #                    'sku': sku_id,
-            #                    'name': sku_name
-            #                })
+            self.crawl(t.attr.href, callback=self.step_second, save={'name': t.text()}, retries=100)
 
     def step_second(self, response):
-        d = response.doc
         txt = response.text
+        sku_name = response.save.get('name')
+        sku_id = pat_sku.findall(response.url)[0]
+        if not sku_id in S:
+            url = 'http://club.jd.com/productpage/p-' + sku_id + '-s-0-t-3-p-0.html'
+            self.crawl(url, callback=self.step_third, retries=100, save={'sku': sku_id, 'name': sku_name})
         data_temp = re.findall(pat_page_config, txt)[0]
         data = re.sub('\s+', '', data_temp)
         data = data.replace("'", '"')
@@ -82,49 +81,40 @@ class Handler(BaseHandler):
                 temp = data.replace(w, '"' + w[:-1] + '"' + ':')
                 data = temp
         data = json.loads(data)
-        for p in data.get('product'):
-            if not p:
-                break
-            cs_list = p.get('colorSize')
+        p = data.get('product')
+        cs_list = p.get('colorSize')
+        if cs_list:
+            sku_l = list()
             for cs in cs_list:
-                sku_id = cs.get('SkuId')
-
+                sku_l.append(cs.get('SkuId'))
+            if sku_l:
+                _lock.acquire()
+                for sku in sku_l:
+                    S.add(str(sku))
+                _lock.release()
 
     @config(age=10 * 24 * 60 * 60)
-    def step_second(self, response):
+    def step_third(self, response):
         url = response.url
         s = response.save
         sku_id = s['sku']
         sku_name = s['name']
         d = json.loads(response.text)
-        comment_page_count_t = d['productCommentSummary']['showCount']
-        comment_page_count_t = comment_page_count_t / 10 \
-            if comment_page_count_t % 10 == 0 \
-            else 1 + comment_page_count_t / 10
-        # max page limit
-        comment_page_count = 30 \
-            if comment_page_count_t >= 30 \
-            else comment_page_count_t
+        comment_page_count_t = d['productCommentSummary']['commentCount']
+        comment_page_count = 0 if comment_page_count_t <= 10 else (
+            comment_page_count_t / 10 if comment_page_count_t % 10 == 0 else 1 + comment_page_count_t / 10)
+        print comment_page_count
         urls = [
             'http://club.jd.com/productpage/p-' + sku_id + '-s-0-t-3-p-' +
             str(x) + '.html'
             for x in range(comment_page_count - 1, 0, -1)
             ]
         if urls:
-            for url in urls:
-                self.crawl(url, callback=self.my_result, save=s, retries=100)
+            for url_t in urls:
+                self.crawl(url_t, callback=self.step_third, save=s, retries=100)
         return [
             sku_name,
             url,
-            response.text,
-            time.strftime('%Y-%m-%d %X', time.localtime())
-        ]
-
-    @config(priority=2)
-    def my_result(self, response):
-        return [
-            response.save['name'],
-            response.url,
             response.text,
             time.strftime('%Y-%m-%d %X', time.localtime())
         ]
