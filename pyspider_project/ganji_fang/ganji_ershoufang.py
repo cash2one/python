@@ -120,6 +120,7 @@ class Handler(BaseHandler):
             result_t.append(json.dumps(detail))
             if href:
                 self.crawl(href, callback=self.detail_page, save=detail, retries=100)
+
         return [1, map(lambda x: [x, time.strftime('%Y-%m-%d %X', time.localtime())], result_t)]
 
     @config(age=15 * 24 * 60 * 60)
