@@ -58,6 +58,7 @@ def extract_info(x):
         return []
 
 
+
 data = reduce(lambda x, y: x + y, map(extract_info, data))
 title = ['id', 'referenceId', 'guid', 'content', 'creationTime', 'referenceName', 'referenceTime', 'referenceType',
          'replyCount', 'score', 'status', 'usefulVoteCount', 'uselessVoteCount', 'userLevelId', 'userProvince',
