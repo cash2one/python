@@ -16,11 +16,10 @@ db_name = 'aliexpress'
 table_name = 'store_name'
 table_title = 'category,store_name,store_href'
 url_start = 'http://www.aliexpress.com/all-wholesale-products.html?spm=2114.11010108.22.1.wucNxZ'
-# connect_dict = {'host': 'localhost', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
 
-# now,the next is spider script
-db_server = DBService(dbName=db_name, tableName=table_name)  # , **connect_dict)
-# if create table for store result in mysql , no need to be changed
+
+db_server = DBService(dbName=db_name, tableName=table_name)
+
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
 

@@ -2,7 +2,14 @@ from ms_spider_fw.DBSerivce import DBService
 import json
 from ms_spider_fw.CSVService import CSV
 
-db_server = DBService(dbName='platform_data', tableName='jd_comment_cellphone_0')
+connect_dict = {
+    'host': 'localhost',
+    'user': 'root',
+    'passwd': '',
+    'charset': 'utf8'
+}
+
+db_server = DBService(dbName='base', tableName='jd_comment_cow_powder', **connect_dict)
 data = db_server.getData(var='comment_json', distinct=True)
 data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
@@ -14,6 +21,7 @@ def extract_info(x):
         return [
             [
                 it.get('id'),
+                it.get('referenceId'),
                 it.get('guid'),
                 it.get('content'),
                 it.get('creationTime'),
@@ -50,9 +58,9 @@ def extract_info(x):
 
 
 data = reduce(lambda x, y: x + y, map(extract_info, data))
-title = ['id', 'guid', 'content', 'creationTime', 'referenceName', 'referenceTime', 'referenceType', 'replyCount',
-         'score', 'status', 'usefulVoteCount', 'uselessVoteCount', 'userLevelId', 'userProvince', 'userRegisterTime',
-         'viewCount', 'orderId', 'isReplyGrade', 'nickname', 'userClient', 'productColor', 'productSize', 'integral',
-         'anonymousFlag', 'userLevelName', 'recommend', 'userClientShow', 'isMobile', 'days']
+title = ['id', 'referenceId', 'guid', 'content', 'creationTime', 'referenceName', 'referenceTime', 'referenceType',
+         'replyCount', 'score', 'status', 'usefulVoteCount', 'uselessVoteCount', 'userLevelId', 'userProvince',
+         'userRegisterTime', 'viewCount', 'orderId', 'isReplyGrade', 'nickname', 'userClient', 'productColor',
+         'productSize', 'integral', 'anonymousFlag', 'userLevelName', 'recommend', 'userClientShow', 'isMobile', 'days']
 
 CSV().writeCsv(savePath='d:', fileTitle=title, data=data, fileName='jd_comment_info_extract.csv')

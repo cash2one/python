@@ -4,12 +4,31 @@ import urllib
 import sys
 import requests
 import json
+from ms_spider_fw.DBSerivce import DBService
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+connect_dict = {
+    'host': 'localhost',
+    'user': 'root',
+    'passwd': '',
+    'charset': 'utf8'
+}
+db_name = 'base'
+table_name = 'weibo_cow_powder'
+table_title = 'detail_json,crawl_time'
+db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
 
-def weibo_api(start_time, end_time, key_word=u"有机奶粉", page=1):
+if not db_server.isTableExist():
+    db_server.createTable(tableTitle=table_title.split(','))
+
+headers = {
+    'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
+                  'Gecko/20100101 Firefox/4.0.1'}
+
+
+def weibo_api(start_time, end_time, key_word=u"奶粉", page=1):
     def time_stamp(d, t='00:00:00'):
         # d = "2016-04-01 00:00:00"
         time_array = time.strptime(d + ' ' + t, "%Y-%m-%d %H:%M:%S")
@@ -36,13 +55,21 @@ def weibo_api(start_time, end_time, key_word=u"有机奶粉", page=1):
     parameters_base.update(parameters_update)
     return url_base + urllib.urlencode(parameters_base)
 
-if __name__=='__main__':
-    api=weibo_api(start_time='2016-04-01',end_time='2016-05-01')
 
-    response = requests.get(api)
+if __name__ == '__main__':
+    start = '2016-05-01'
+    end = '2016-05-02'
 
+    api = weibo_api(start_time=start, end_time=end)
+    response = requests.get(url=api, headers=headers)
+    page_total = json.loads(response.content).get('total_number')
 
-    print response.content
-
-    page_total=json.loads(response.content).get('total_number')
-    print page_total/10
+    for i in range(1, 101 if page_total / 10 > 101 else page_total / 10):
+        try:
+            api_t = weibo_api(start_time=start, end_time=end, page=i)
+            response_t = requests.get(url=api_t, headers=headers)
+            db_server.data2DB(data=[response_t.content, time.strftime('%Y-%m-%d %X', time.localtime())])
+            print 'is the ' + str(i) + ' request sucessful.'
+        except Exception, e:
+            print e.message
+            continue

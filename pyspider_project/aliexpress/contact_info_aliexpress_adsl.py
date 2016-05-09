@@ -53,9 +53,9 @@ _cookie_d = {
 
 
 def ssh_mysql(command):
-    host = "118.193.220.134"
-    user_name = "root"
-    pass_word = "Ysy20101108"
+    host = ""
+    user_name = ""
+    pass_word = ""
 
     paramiko.util.log_to_file('C:\paramiko.log')
     svr = paramiko.SSHClient()
