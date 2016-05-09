@@ -14,6 +14,7 @@ data = db_server.getData(var='comment_json', distinct=True)
 data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
 
+# extract_info from json string
 def extract_info(x):
     try:
         d_t = json.loads(x[0])
