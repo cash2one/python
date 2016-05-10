@@ -5,6 +5,7 @@ import sys
 import requests
 import json
 from ms_spider_fw.DBSerivce import DBService
+from pyquery.pyquery import PyQuery
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -56,20 +57,28 @@ def weibo_api(start_time, end_time, key_word=u"奶粉", page=1):
     return url_base + urllib.urlencode(parameters_base)
 
 
+def brand_list():
+    res = requests.get('http://list.jd.com/list.html?cat=1319%2C1523%2C7052&go=0')
+    d = PyQuery(res.content)
+    return map(lambda a: a.text().split(u'（')[0], list(d.find('#brandsArea li a').items()))
+
+
 if __name__ == '__main__':
-    start = '2016-05-01'
-    end = '2016-05-02'
+    start = '2016-04-20'
+    end = '2016-04-30'
 
-    api = weibo_api(start_time=start, end_time=end)
-    response = requests.get(url=api, headers=headers)
-    page_total = json.loads(response.content).get('total_number')
+    for k_w in brand_list():
+        print k_w
+        api = weibo_api(start_time=start, end_time=end, key_word=k_w)
+        response = requests.get(url=api, headers=headers)
+        page_total = json.loads(response.content).get('total_number')
 
-    for i in range(1, 101 if page_total / 10 > 101 else page_total / 10):
-        try:
-            api_t = weibo_api(start_time=start, end_time=end, page=i)
-            response_t = requests.get(url=api_t, headers=headers)
-            db_server.data2DB(data=[response_t.content, time.strftime('%Y-%m-%d %X', time.localtime())])
-            print 'is the ' + str(i) + ' request sucessful.'
-        except Exception, e:
-            print e.message
-            continue
+        for i in range(1, 101 if page_total / 10 > 101 else page_total / 10):
+            try:
+                api_t = weibo_api(start_time=start, end_time=end, page=i, key_word=k_w)
+                response_t = requests.get(url=api_t, headers=headers)
+                db_server.data2DB(data=[response_t.content, time.strftime('%Y-%m-%d %X', time.localtime())])
+                print 'is the ' + str(i) + ' request sucessful.'
+            except Exception, e:
+                print e.message
+                continue
