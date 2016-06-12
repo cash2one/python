@@ -10,16 +10,10 @@ from pyquery.pyquery import PyQuery
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-connect_dict = {
-    'host': 'localhost',
-    'user': 'root',
-    'passwd': '',
-    'charset': 'utf8'
-}
-db_name = 'base'
-table_name = 'weibo_cow_powder'
+db_name = 'test'
+table_name = 'weibo_cellphone'
 table_title = 'detail_json,crawl_time'
-db_server = DBService(dbName=db_name, tableName=table_name, **connect_dict)
+db_server = DBService(dbName=db_name, tableName=table_name)  # , **connect_dict)
 
 if not db_server.isTableExist():
     db_server.createTable(tableTitle=table_title.split(','))
@@ -63,21 +57,48 @@ def brand_list():
     return map(lambda a: a.text().split(u'（')[0], list(d.find('#brandsArea li a').items()))
 
 
-if __name__ == '__main__':
-    start = '2016-04-20'
-    end = '2016-04-30'
+def target_keyword(industry):
+    with open('d:/spider/weibo/' + industry + '.txt', 'r')as f:
+        keyword_tmp = f.read()
+    keyword_s = map(lambda x: x.replace(u'）', '').split(u'（'), keyword_tmp.split('\n'))
+    keyword_d = dict()
+    for k_w in keyword_s:
+        for kw in k_w:
+            keyword_d[kw] = k_w[0]
+    return keyword_d.items()
 
-    for k_w in brand_list():
-        print k_w
-        api = weibo_api(start_time=start, end_time=end, key_word=k_w)
+
+def add_info(base, industry, brand):
+    t = json.loads(base)
+    t['sf_industry'] = industry
+    t['sf_brand'] = brand
+    return json.dumps(t)
+
+
+if __name__ == '__main__':
+    start = '2016-06-10'
+    end = '2016-06-11'
+    industry = u'手机'
+
+    t_k = target_keyword(industry)
+    for k_w in t_k:
+        try:print k_w[1]
+        except:pass
+        api = weibo_api(start_time=start, end_time=end, key_word=k_w[0] + ' ' + industry)
         response = requests.get(url=api, headers=headers)
+        db_server.data2DB(data=[add_info(response.content, industry, k_w[1]),
+                                time.strftime('%Y-%m-%d %X', time.localtime())])
         page_total = json.loads(response.content).get('total_number')
 
-        for i in range(1, 101 if page_total / 10 > 101 else page_total / 10):
+        if not page_total:
+            continue
+
+        for i in range(2, 101 if page_total / 10 > 101 else page_total / 10):
             try:
-                api_t = weibo_api(start_time=start, end_time=end, page=i, key_word=k_w)
+                api_t = weibo_api(start_time=start, end_time=end, page=i, key_word=k_w[0] + ' ' + industry)
                 response_t = requests.get(url=api_t, headers=headers)
-                db_server.data2DB(data=[response_t.content, time.strftime('%Y-%m-%d %X', time.localtime())])
+                db_server.data2DB(data=[add_info(response.content, industry, k_w[1]),
+                                        time.strftime('%Y-%m-%d %X', time.localtime())])
                 print 'is the ' + str(i) + ' request sucessful.'
             except Exception, e:
                 print e.message

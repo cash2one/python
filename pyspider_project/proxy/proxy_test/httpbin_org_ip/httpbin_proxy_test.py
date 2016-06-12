@@ -19,7 +19,7 @@ qu_proxy_ok = qu(0)
 db_name = 'base'
 table_name_s = 'proxy_other_source,proxy_xi_ci_dai_li,proxy_you_dai_li,mimiip'
 table_title = 'proxy_port,crawl_time'
-url_for_proxy_test = 'http://httpbin.org/ip'
+url_for_proxy_test = ' '
 # connect_dict = {'host': '10.118.187.12', 'user': 'admin', 'passwd': 'admin', 'charset': 'utf8'}
 connect_dict = {'host': 'localhost', 'user': 'root', 'passwd': '', 'charset': 'utf8'}
 
