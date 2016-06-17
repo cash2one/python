@@ -92,7 +92,7 @@ def test_from_url(url, timeout=1):
 def test_from_list(proxy_list, timeout=1):
     """
     should be given a proxy list for test
-    :param proxy_list: list object should be given
+    :param proxy_list: list object should be given[ip,ip,ip]
     :param timeout: default 1 second
     :return:
     """

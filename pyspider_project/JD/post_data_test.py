@@ -11,7 +11,7 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 db_server = DBService(dbName='platform_data', tableName='jd_comment_woman_cloth')
-data = db_server.getData(var='comment_json', distinct=True, limit=110)
+data = db_server.getData(var='comment_json', distinct=True, limit=10)
 data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
 re_sub_p = re.compile('<.+?>')
@@ -61,12 +61,9 @@ def extract_info(x):
 
 
 def _post(data):
-    print (len(json.loads(data)))
-    print data
-    # url = 'http://dengta.sit.sf-express.com:6080/spider/saveJdCommentDetails'
-    # t = requests.post(url=url, data={'authKey': 'ddt_spider_0321', 'json': data})
-    # print t.content.encode('gbk', 'ignore')
-    # print t.status_code
+    url = 'http://dengta.sit.sf-express.com:6080/spider/saveJdCommentDetails'
+    t = requests.post(url=url, data={'authKey': 'ddt_spider_0321', 'json': data})
+    print t.status_code
 
 
 if __name__ == '__main__':
