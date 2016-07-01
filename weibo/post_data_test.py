@@ -64,6 +64,10 @@ def extract_info(x):
                 "weiboType": '',  # weibo_type
                 "weiboType1": '',  # weibo_type1
                 "isEffect": 1,  # is_effect
+                "negWords": '',
+                "negWordsNum": 0,
+                "goodWords": '',
+                "goodsWordsNum": 0,
                 "isNeg": -1,  # is_neg
                 "brand": brand,
                 "industry": industry

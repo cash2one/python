@@ -51,8 +51,12 @@ def extract_info(x):
                 "recommend": it.get("recommend"),
                 "userclientshow": re.sub(re_sub_p, '', it.get("userClientShow")),
                 "ismobile": it.get("isMobile"),
+                "negwords": "",
+                "negwordsnum": 0,
+                "goodwords": "",
+                "goodwordsnum":0 ,
                 "days": it.get("days"),
-                "industry":u'手机'
+                "industry": u'手机'
             }
             for it in d
             ]
@@ -61,8 +65,10 @@ def extract_info(x):
 
 
 def _post(data):
+    print data
     url = 'http://dengta.sit.sf-express.com:6080/spider/saveJdCommentDetails'
     t = requests.post(url=url, data={'authKey': 'ddt_spider_0321', 'json': data})
+    print t.text
     print t.status_code
 
 

@@ -2,7 +2,7 @@ from ms_spider_fw.DBSerivce import DBService
 import json
 from ms_spider_fw.CSVService import CSV
 import re
-
+import jieba
 # connect_dict = {
 #     'host': 'localhost',
 #     'user': 'root',

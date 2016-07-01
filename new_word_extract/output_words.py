@@ -30,7 +30,8 @@ def is_ascii(s):
 
 def find_compact_substr(dict):
     fp = open("D:/spider/weibo/handle/result_1.txt")
-    str_freq = {}
+    # str_freq = {}
+    res=list()
     for line in fp:
         line = line.decode('utf-8')
         items = line.split('\t')
@@ -48,7 +49,10 @@ def find_compact_substr(dict):
                 and len(substr) >= 2 \
                 and not is_ascii(substr):
             print "%s\t%f" % (substr, freq)
-
+            res.append("%s,%f" % (substr, freq))
+    res.sort()
+    with open('D:/spider/weibo/handle/word_ok.csv','w')as f:
+        f.write('\n'.join(res))
 
 if __name__ == "__main__":
     dict = load_dict('D:/spider/weibo/handle/result_2.txt')

@@ -6,7 +6,7 @@ sys.setdefaultencoding('utf8')
 import re
 import math
 
-re_sub_p = re.compile(u'[，。；？（）、～~！!&;)(^　\s+]|[a-zA-Z0-9]')
+re_sub_p = re.compile(u'[，,。；？（）、～~！!&;)(^　\s+]|[a-zA-Z0-9]')
 
 
 def compute_entropy(word_list):

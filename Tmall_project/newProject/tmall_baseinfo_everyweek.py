@@ -1,4 +1,4 @@
-# coding:utf8
+﻿# -*- encoding: utf-8 -*-
 # __author__ = '613108'
 
 # This script is used to unique tmall data(crawl weekly),and store date to mysql_db ;
@@ -12,7 +12,7 @@ import numpy as np
 
 # config text:
 # crawled_date should be modified before use
-spider_time = datetime.date(2016, 6, 12)
+spider_time = datetime.date(2016, 6, 27)
 spider_week = spider_time.strftime('%U')
 
 

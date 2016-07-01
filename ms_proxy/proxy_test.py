@@ -9,7 +9,9 @@ import json
 import re
 from pyquery.pyquery import PyQuery as pq
 from threading import Thread
+from requests.auth import HTTPProxyAuth
 
+P_A = HTTPProxyAuth('sfHoujt', 'sf654321')
 patt_ip = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])')
 
 
@@ -42,13 +44,14 @@ def test(proxy, **kwargs):
         proxy_port = str(proxy) + str(port)
     else:
         raise ValueError('proxy or port not collect!')
-
     s = requests.Session()
     proxy_OK = {'http': 'http://%s' % proxy_port}
+
     try:
-        res = s.get('http://httpbin.org/ip', proxies=proxy_OK, timeout=kwargs.get('timeout'))
+        res = s.get('https://list.tmall.com/search_product.htm?q=Q9197%B0%AE%D4%DE+%BA%FB%B5%FB%BD%E1%B4%CC%D0%E5%CF%B5%B4%F8%D0%D4%B8%D0%C7%E9%C8%A4%C4%DA%BF%E3+++++9197%D0%C2%B7%DB%C9%AB', proxies=proxy_OK, auth=P_A, timeout=kwargs.get('timeout'))
+        print res.text[:500]
     except Exception, e:
-        print e.message
+        # print e.message
         return False
 
     ip_return = re.findall(patt_ip, res.text)
@@ -83,7 +86,7 @@ def test_from_url(url, timeout=1):
     or like this: proxy_list = test_from_url(url , timeout=3)
     """
     patt_pp = re.compile(r'(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d]):\d{1,5}')
-    t = requests.get(url,verify=True).text
+    t = requests.get(url, verify=True).text
     txt = ':'.join(pq(t).text().split(' '))
     proxy_port = list(set(re.findall(patt_pp, txt)))
     return test_from_list(proxy_list=proxy_port, timeout=timeout)
@@ -126,3 +129,13 @@ def test_from_list(proxy_list, timeout=1):
         return filter(lambda x: 1 if x else 0, map(lambda x: x.get_rst, thread_pool))
     else:
         raise ValueError('Not found any proxies , please check!')
+
+
+if __name__ == '__main__':
+    t = requests.get('http://dly.134t.com/query.txt?key=NP1FA878EA&word=&count=1000')
+    t = t.text
+    tt = map(lambda x: x.replace('\r', ''), t.split('\n'))
+    tt = list(set(tt))
+    t = test_from_list(tt, 5)
+    print t
+    print len(t) / float(len(tt))

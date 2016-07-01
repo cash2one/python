@@ -1,0 +1,1 @@
+微博部分爬虫无需架构在pyspider框架下，使用linux contab定时任务即可；

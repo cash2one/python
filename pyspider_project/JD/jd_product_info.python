@@ -10,6 +10,7 @@ import time
 import json
 import re
 
+import pyquery
 # reload(sys)
 # sys.setdefaultencoding('utf8')
 

@@ -10,8 +10,8 @@ import re
 #     'charset': 'utf8'
 # }
 
-db_server = DBService(dbName='platform_data', tableName='jd_comment_cellphone')
-data = db_server.getData(var='comment_json')#distinct=True, limit=10000)
+db_server = DBService(dbName='platform_data', tableName='jd_comment_woman_cloth')
+data = db_server.getData(var='comment_json',limit=100000)#distinct=True, limit=10000)
 data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
 re_sub_p = re.compile('<.+?>')

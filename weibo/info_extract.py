@@ -11,7 +11,7 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 db_server = DBService(dbName='test', tableName='weibo_cellphone')  # , **connect_dict)
-data = db_server.getData(var='detail_json',limit=2000)
+data = db_server.getData(var='detail_json',limit=50000)
 data = filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data))
 
 #re_sub_p = re.compile(u'回复|#.+?#|@.+?[\s:：]|\[.+?\]|@.+$|\s+?|http.+?$|//')
