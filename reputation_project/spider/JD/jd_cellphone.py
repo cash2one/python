@@ -98,8 +98,8 @@ class Handler(BaseHandler):
         ]
 
     # over ride method for result store to mysql
-    def on_result(self, result):
-        if result:
-            db_server.data2DB(data=result)
-        else:
-            print u'result-->return None'
+    # def on_result(self, result):
+    #     if result:
+    #         db_server.data2DB(data=result)
+    #     else:
+    #         print u'result-->return None'

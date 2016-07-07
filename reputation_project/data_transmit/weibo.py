@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-from ms_spider_fw.DBSerivce import DBService
 import json
 import re
 from analysis import setiment
 import sys
 from datetime import datetime
+import requests
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-db_server = DBService(dbName='test', tableName='weibo_cellphone')  # , **connect_dict)
-data = db_server.getData(var='detail_json', limit=20000)
-data = reduce(lambda x, y: x + y,
-              filter(lambda x: 1 if x[0][0] == '{' else 0, filter(lambda x: 1 if x[0] else 0, data)))
-
-db_server = DBService(dbName='test', tableName="weibo_setiment_cellphone")
-table_title = [  # "id",
+table_title = [
+    "id",
     "createdAt",
     "mid",
     "text",
@@ -53,8 +48,6 @@ table_title = [  # "id",
     "brand",
     "industry"
 ]
-if not db_server.isTableExist():
-    db_server.createTable(tableTitle=table_title)
 
 re_sub_p = re.compile('<.+?>')
 re_sub_t = re.compile('\+\d+?\s')
@@ -72,6 +65,7 @@ def time_format(ori):
 
 
 def extract_info(x):
+    res = list()
     try:
         d_t = json.loads(x)
         brand = d_t.get('sf_brand')
@@ -83,9 +77,9 @@ def extract_info(x):
                 if_ad = setiment.if_ad(text)
                 st = setiment.checking_sentiment(text)
                 if if_ad:
-                    st = ('', '', '', '', '')
+                    st = ('', 0, '', 0, 0)
                 t = [
-                    # id,
+                    str(it.get('id')),
                     time_format(it.get('created_at')),
                     it.get('mid'),
                     text,
@@ -112,7 +106,7 @@ def extract_info(x):
                     it.get('user').get('description'),
                     '',  # weibo_type
                     '',  # weibo_type1
-                    abs(if_ad-1),  # is_effect
+                    abs(if_ad - 1),  # is_effect
                     st[2],
                     st[3],
                     st[0],
@@ -121,12 +115,21 @@ def extract_info(x):
                     brand,
                     industry
                 ]
-                db_server.data2DB(data=t)
+                res.append(t)
     except Exception, e:
         print e.message
-    return None
+    return res
 
 
-if __name__ == "__main__":
-    for item in data:
-        extract_info(item)
+def transmit(x):
+    _data = map(lambda i: dict(zip(table_title, i)), extract_info(x))
+    _post_data=json.dumps(_data)
+    _post_url = 'http://dengta.sit.sf-express.com:6080/spider/saveSinaWeiboDetails'
+    try:
+        t = requests.post(url=_post_url, data={'authKey': 'ddt_spider_0321', 'json': _post_data})
+        status=json.loads(t.content)
+        return status.get('status')
+    except ValueError,e:
+        return e.message,' may be redirect to main_page.'
+    except requests.ConnectionError,e:
+        return e.message

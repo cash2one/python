@@ -3,15 +3,27 @@
 from weibo_base_framework import *
 from ms_spider_fw.DBSerivce import DBService
 from datetime import *
-import time
+# import time
+from Queue import Queue
+from data_transmit.weibo import transmit
+import threading
+import json
 
-# config text ，历史数据
-industry = u'女装'
-_end = '2016-06-22'
-_before_days = 30
+# config text
+##################################################
+# 行业配置，对应搜索关键词“文件名称”
+industry = u'手机'
+# 结束时间
+_end = date.today().__str__()
+# 需返回多长时间的数据
+_before_days = 1
+# 数据表名称
+table_name = 'weibo_cellphone'
+##################################################
+
+queue_transmit = Queue(0)
 
 db_name = 'test'
-table_name = 'weibo_women_cloth'
 table_title = 'detail_json,crawl_time'
 headers = {'User-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) '
                          'Gecko/20100101 Firefox/4.0.1'}
@@ -32,33 +44,52 @@ time_step = zip(_start_time, _end_time)
 
 t_k = target_keyword(industry)
 
-for item in time_step:
-    start, end = item
-    print start
-    for k_w in t_k:
-        try:
-            print k_w[1]
-            api = weibo_api(start_time=start, end_time=end, key_word=k_w[0] + ' ' + industry)
-            response = requests.get(url=api, headers=headers)
 
-            db_server.data2DB(data=[add_info(response.content, industry, k_w[1]),
-                                    time.strftime('%Y-%m-%d %X', time.localtime())])
-            page_total = json.loads(response.content).get('total_number')
+def download_data():
+    for item in time_step:
+        start, end = item
+        for k_w in t_k:
+            try:
+                api = weibo_api(start_time=start, end_time=end, key_word=k_w[0] + ' ' + industry)
+                response = requests.get(url=api, headers=headers)
+                page_total = json.loads(response.content).get('total_number')
 
-            if not page_total:
+                if not page_total:
+                    continue
+
+                _data = add_info(response.content, industry, k_w[1])
+                queue_transmit.put(_data)
+                # db_server.data2DB(data=[_data, time.strftime('%Y-%m-%d %X', time.localtime())])
+
+
+                for i in range(2, 101 if page_total / 10 > 101 else page_total / 10):
+                    try:
+                        api_t = weibo_api(start_time=start, end_time=end, page=i, key_word=k_w[0] + ' ' + industry)
+                        response_t = requests.get(url=api_t, headers=headers)
+                        _data = add_info(response_t.content, industry, k_w[1])
+                        queue_transmit.put(_data)
+                        # db_server.data2DB(data=[_data, time.strftime('%Y-%m-%d %X', time.localtime())])
+                    except Exception, e:
+                        print e.message
+                        continue
+            except Exception, e:
+                print e.message
                 continue
 
-            for i in range(2, 101 if page_total / 10 > 101 else page_total / 10):
-                try:
-                    api_t = weibo_api(start_time=start, end_time=end, page=i, key_word=k_w[0] + ' ' + industry)
-                    response_t = requests.get(url=api_t, headers=headers)
-                    # print response_t.content
-                    db_server.data2DB(data=[add_info(response_t.content, industry, k_w[1]),
-                                            time.strftime('%Y-%m-%d %X', time.localtime())])
-                    print 'is the ' + str(i) + ' request sucessful.'
-                except Exception, e:
-                    print e.message
-                    continue
-        except Exception, e:
-            print e.message
-            continue
+
+def upload2ddt():
+    while True:
+        data = queue_transmit.get()
+        _if_ok = transmit(data)
+        print _if_ok
+        if not _if_ok == 'ok':
+            queue_transmit.put(data)
+        if threading.activeCount() < 3:
+            break
+
+
+if __name__ == '__main__':
+    T1 = threading.Thread(target=upload2ddt, name='Thread_upload')
+    T2 = threading.Thread(target=download_data, name='Thread_download')
+    T2.start()
+    T1.start()
